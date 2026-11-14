@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+// Registry maps ID to Meta and Name to ID.
 type Registry struct {
 	nextID   uint64
 	byID     map[ID]Meta
@@ -12,6 +13,7 @@ type Registry struct {
 	mu       sync.RWMutex
 }
 
+// NewRegistry creates a new Registry.
 func NewRegistry() *Registry {
 	return &Registry{
 		byID:     make(map[ID]Meta),
@@ -19,6 +21,7 @@ func NewRegistry() *Registry {
 	}
 }
 
+// Put maps the given Meta by a generated ID, and maps the given Name to the generated ID.
 func (r *Registry) Put(name Name, meta Meta) (ID, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -34,6 +37,7 @@ func (r *Registry) Put(name Name, meta Meta) (ID, error) {
 	return id, nil
 }
 
+// Get returns the Meta by the given ID.
 func (r *Registry) Get(id ID) (Meta, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -42,6 +46,7 @@ func (r *Registry) Get(id ID) (Meta, bool) {
 	return meta, ok
 }
 
+// GetID returns the ID by the given Name.
 func (r *Registry) GetID(name Name) (ID, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
