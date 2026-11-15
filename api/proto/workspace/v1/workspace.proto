@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package qrixr.workspace.v1;
+
+option go_package = "github.com/Skoowshot/qrix-runtime/gen/go/workspace/v1;workspacev1";
+
+service WorkspaceService {
+  rpc Create(CreateRequest) returns (CreateResponse);
+  rpc GetByName(GetByNameRequest) returns (GetByNameResponse);
+}
+
+message CreateRequest {
+  string name = 1;
+}
+
+message CreateResponse {
+  uint64 id = 1;
+}
+
+message GetByNameRequest {
+  string name = 1;
+}
+
+message GetByNameResponse {
+  uint64 id = 1;
+}
