@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log/slog"
 
-	workspacev1 "github.com/Skoowshot/qrix-runtime/gen/workspace/v1"
+	workspacev1 "github.com/Skoowshot/qrix-runtime/gen/go/workspace/v1"
 	"github.com/Skoowshot/qrix-runtime/internal/workspace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -30,7 +30,7 @@ func (h *Workspace) Create(
 	id, err := h.service.Create(ctx, name)
 	if err != nil {
 		if errors.Is(err, workspace.ErrNameAlreadyExists) {
-			return nil, status.Error(codes.AlreadyExists, err.Error())
+			return nil, status.Error(codes.AlreadyExists, "name already exists")
 		}
 
 		slog.ErrorContext(ctx, "failed to create workspace", "error", err)
@@ -49,7 +49,7 @@ func (h *Workspace) GetByName(
 	id, err := h.service.GetByName(ctx, name)
 	if err != nil {
 		if errors.Is(err, workspace.ErrNotFound) {
-			return nil, status.Error(codes.NotFound, err.Error())
+			return nil, status.Error(codes.NotFound, "name not found")
 		}
 
 		slog.ErrorContext(ctx, "failed to get workspace by name", "error", err)
