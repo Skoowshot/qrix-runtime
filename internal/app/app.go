@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/Skoowshot/qrix-runtime/internal/app/server"
+	"github.com/Skoowshot/qrix-runtime/internal/workspace"
 )
 
 type App struct {
@@ -20,7 +21,10 @@ func NewApp() *App {
 }
 
 func (app *App) Start() error {
-	ctrlServer, err := server.ListenControl(":7178")
+	wsRegistry := workspace.NewRegistry()
+	wsService := workspace.NewService(wsRegistry)
+
+	ctrlServer, err := server.ListenControl(":7178", wsService)
 	if err != nil {
 		return fmt.Errorf("create control server: %w", err)
 	}

@@ -4,6 +4,9 @@ import (
 	"log/slog"
 	"net"
 
+	workspacev1 "github.com/Skoowshot/qrix-runtime/gen/workspace/v1"
+	"github.com/Skoowshot/qrix-runtime/internal/app/grpchandler"
+	"github.com/Skoowshot/qrix-runtime/internal/workspace"
 	"google.golang.org/grpc"
 )
 
@@ -12,12 +15,18 @@ type Control struct {
 	grpcServer *grpc.Server
 }
 
-func ListenControl(addr string) (*Control, error) {
+func ListenControl(
+	addr string,
+	wsService *workspace.Service,
+) (*Control, error) {
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, err
 	}
 	grpcServer := grpc.NewServer()
+
+	workspacev1.RegisterWorkspaceServiceServer(grpcServer, grpchandler.NewWorkspace(wsService))
+
 	return &Control{
 		listener:   lis,
 		grpcServer: grpcServer,
