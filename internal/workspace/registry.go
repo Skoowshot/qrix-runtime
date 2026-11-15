@@ -8,7 +8,7 @@ import (
 // Registry maps ID to Workspace and Name to ID.
 type Registry struct {
 	nextID   uint64
-	byID     map[ID]Workspace
+	byID     map[ID]*Workspace
 	nameToID map[Name]ID
 	mu       sync.RWMutex
 }
@@ -16,13 +16,13 @@ type Registry struct {
 // NewRegistry creates a Registry.
 func NewRegistry() *Registry {
 	return &Registry{
-		byID:     make(map[ID]Workspace),
+		byID:     make(map[ID]*Workspace),
 		nameToID: make(map[Name]ID),
 	}
 }
 
 // Put maps the given Workspace by a generated ID, and maps the given Name to generated ID.
-func (r *Registry) Put(name Name, workspace Workspace) (ID, error) {
+func (r *Registry) Put(name Name, workspace *Workspace) (ID, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -38,7 +38,7 @@ func (r *Registry) Put(name Name, workspace Workspace) (ID, error) {
 }
 
 // Get returns the Workspace by ID.
-func (r *Registry) Get(id ID) (Workspace, bool) {
+func (r *Registry) Get(id ID) (*Workspace, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
