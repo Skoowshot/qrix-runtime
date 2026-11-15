@@ -3,8 +3,6 @@ package workspace
 import (
 	"context"
 	"fmt"
-
-	"github.com/Skoowshot/qrix-runtime/internal/store"
 )
 
 type Service struct {
@@ -22,10 +20,7 @@ func (s *Service) Create(ctx context.Context, name Name) (ID, error) {
 		return 0, err
 	}
 
-	ws := &Workspace{
-		Stores:  store.NewRegistry(),
-		Network: nil,
-	}
+	ws := NewWorkspace()
 
 	id, err := s.registry.Put(name, ws)
 	if err != nil {
