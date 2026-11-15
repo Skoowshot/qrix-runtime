@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net"
 
-	workspacev1 "github.com/Skoowshot/qrix-runtime/gen/workspace/v1"
+	workspacev1 "github.com/Skoowshot/qrix-runtime/gen/go/workspace/v1"
 	"github.com/Skoowshot/qrix-runtime/internal/app/grpchandler"
 	"github.com/Skoowshot/qrix-runtime/internal/workspace"
 	"google.golang.org/grpc"
