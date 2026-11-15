@@ -1,4 +1,4 @@
-package grpc
+package grpchandler
 
 import (
 	"context"
@@ -11,18 +11,18 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type WorkspaceHandler struct {
+type Workspace struct {
 	service *workspace.Service
 	workspacev1.UnimplementedWorkspaceServiceServer
 }
 
-func NewWorkspaceHandler(service *workspace.Service) *WorkspaceHandler {
-	return &WorkspaceHandler{
+func NewWorkspace(service *workspace.Service) *Workspace {
+	return &Workspace{
 		service: service,
 	}
 }
 
-func (h *WorkspaceHandler) Create(
+func (h *Workspace) Create(
 	ctx context.Context,
 	req *workspacev1.CreateRequest,
 ) (*workspacev1.CreateResponse, error) {
@@ -41,7 +41,7 @@ func (h *WorkspaceHandler) Create(
 		Id: uint64(id),
 	}, nil
 }
-func (h *WorkspaceHandler) GetByName(
+func (h *Workspace) GetByName(
 	ctx context.Context,
 	req *workspacev1.GetByNameRequest,
 ) (*workspacev1.GetByNameResponse, error) {
