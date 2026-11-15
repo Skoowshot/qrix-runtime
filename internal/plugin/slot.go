@@ -11,6 +11,13 @@ type Slot struct {
 	closers []io.Closer
 }
 
+// NewSlot creates a Slot.
+func NewSlot() *Slot {
+	return &Slot{
+		closers: make([]io.Closer, 0),
+	}
+}
+
 // TrackCloser registers an io.Closer to be disposed of when the slot closes.
 // Nil closers are ignored.
 func (s *Slot) TrackCloser(closer io.Closer) {
