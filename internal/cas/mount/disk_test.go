@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/Skoowshot/qrix-runtime/internal/cas"
-	"github.com/Skoowshot/qrix-runtime/internal/cas/disk"
 )
 
 func TestDisk_Get(t *testing.T) {
@@ -37,7 +36,7 @@ func TestDisk_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tempPath := t.TempDir()
-			mount := NewDisk(tempPath, disk.FlatLayout())
+			mount := NewDisk(tempPath, FlatDiskLayout())
 			if tt.setup != nil {
 				tt.setup(t, mount)
 			}
@@ -83,7 +82,7 @@ func TestDisk_Has(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tempPath := t.TempDir()
-			mount := NewDisk(tempPath, disk.FlatLayout())
+			mount := NewDisk(tempPath, FlatDiskLayout())
 			if tt.setup != nil {
 				tt.setup(t, mount)
 			}
@@ -134,7 +133,7 @@ func TestDisk_Put(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tempPath := t.TempDir()
-			mount := NewDisk(tempPath, disk.FlatLayout())
+			mount := NewDisk(tempPath, FlatDiskLayout())
 			if tt.setup != nil {
 				tt.setup(t, mount)
 			}
