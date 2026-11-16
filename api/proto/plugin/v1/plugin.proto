@@ -11,13 +11,13 @@ service PluginService {
   rpc ListPlugins(ListPluginsRequest) returns (ListPluginsResponse);
 }
 
-message Descriptor {
+message SlotDescriptor {
   uint64 plugin_id = 1;
   bytes config = 2;
 }
 
 message InstantiateSlotsRequest {
-  repeated Descriptor descriptors = 1;
+  repeated SlotDescriptor descriptors = 1;
 }
 
 message InstantiateSlotsResponse {}

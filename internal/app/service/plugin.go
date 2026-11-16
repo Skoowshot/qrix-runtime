@@ -10,7 +10,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type PluginDescriptor struct {
+type SlotDescriptor struct {
 	ID     plugin.ID
 	Config plugin.Config
 }
@@ -27,7 +27,7 @@ func NewPlugin(pluginRepo *plugin.Registry, wsRepo *workspace.Registry) *Plugin 
 	}
 }
 
-func (s *Plugin) Instantiate(ctx context.Context, wsID workspace.ID, descriptors []PluginDescriptor) error {
+func (s *Plugin) InstantiateSlots(ctx context.Context, wsID workspace.ID, descriptors []SlotDescriptor) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (s *Plugin) Instantiate(ctx context.Context, wsID workspace.ID, descriptors
 	return attachSlots(ws, descriptors, slots)
 }
 
-func (s *Plugin) resolvePlugins(ws *workspace.Workspace, descriptors []PluginDescriptor) ([]plugin.Plugin, error) {
+func (s *Plugin) resolvePlugins(ws *workspace.Workspace, descriptors []SlotDescriptor) ([]plugin.Plugin, error) {
 	seen := make(map[plugin.ID]struct{}, len(descriptors))
 	plugins := make([]plugin.Plugin, len(descriptors))
 	var errs []error
@@ -78,12 +78,12 @@ func (s *Plugin) resolvePlugins(ws *workspace.Workspace, descriptors []PluginDes
 	return plugins, nil
 }
 
-func (s *Plugin) initSlots(ctx context.Context, descriptors []PluginDescriptor, plugins []plugin.Plugin) ([]*plugin.Slot, error) {
+func (s *Plugin) initSlots(ctx context.Context, descriptors []SlotDescriptor, plugins []plugin.Plugin) ([]*plugin.Slot, error) {
 	g, gCtx := errgroup.WithContext(ctx)
 	slots := make([]*plugin.Slot, len(descriptors))
 
 	for i, desc := range descriptors {
-		g.Go(initPluginGoroutine(gCtx, desc, i, plugins, slots))
+		g.Go(initSlotGoroutine(gCtx, desc, i, plugins, slots))
 	}
 
 	if err := g.Wait(); err != nil {
@@ -93,7 +93,7 @@ func (s *Plugin) initSlots(ctx context.Context, descriptors []PluginDescriptor, 
 	return slots, nil
 }
 
-func initPluginGoroutine(ctx context.Context, desc PluginDescriptor, idx int, plugins []plugin.Plugin, slots []*plugin.Slot) func() error {
+func initSlotGoroutine(ctx context.Context, desc SlotDescriptor, idx int, plugins []plugin.Plugin, slots []*plugin.Slot) func() error {
 	return func() error {
 		slot := plugin.NewSlot()
 		initCfg := plugin.InitConfig{
@@ -109,7 +109,7 @@ func initPluginGoroutine(ctx context.Context, desc PluginDescriptor, idx int, pl
 	}
 }
 
-func attachSlots(ws *workspace.Workspace, descriptors []PluginDescriptor, slots []*plugin.Slot) error {
+func attachSlots(ws *workspace.Workspace, descriptors []SlotDescriptor, slots []*plugin.Slot) error {
 	for i, desc := range descriptors {
 		if ws.PutSlot(desc.ID, slots[i]) {
 			continue
@@ -121,7 +121,7 @@ func attachSlots(ws *workspace.Workspace, descriptors []PluginDescriptor, slots 
 	return nil
 }
 
-func removeSlots(ws *workspace.Workspace, descriptors []PluginDescriptor) {
+func removeSlots(ws *workspace.Workspace, descriptors []SlotDescriptor) {
 	for _, j := range descriptors {
 		removed := ws.RemoveSlot(j.ID)
 		if removed == nil {
