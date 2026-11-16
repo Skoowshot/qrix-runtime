@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/Skoowshot/qrix-runtime/internal/app/server"
+	"github.com/Skoowshot/qrix-runtime/internal/app/service"
 	"github.com/Skoowshot/qrix-runtime/internal/workspace"
 )
 
@@ -22,7 +23,7 @@ func NewApp() *App {
 
 func (app *App) Start() error {
 	wsRegistry := workspace.NewRegistry()
-	wsService := workspace.NewService(wsRegistry)
+	wsService := service.NewWorkspace(wsRegistry)
 
 	ctrlServer, err := server.ListenControl(":7178", wsService)
 	if err != nil {

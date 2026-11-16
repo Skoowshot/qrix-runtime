@@ -6,7 +6,7 @@ import (
 
 	workspacev1 "github.com/Skoowshot/qrix-runtime/gen/go/workspace/v1"
 	"github.com/Skoowshot/qrix-runtime/internal/app/grpchandler"
-	"github.com/Skoowshot/qrix-runtime/internal/workspace"
+	"github.com/Skoowshot/qrix-runtime/internal/app/service"
 	"google.golang.org/grpc"
 )
 
@@ -17,7 +17,7 @@ type Control struct {
 
 func ListenControl(
 	addr string,
-	wsService *workspace.Service,
+	wsService *service.Workspace,
 ) (*Control, error) {
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
