@@ -6,17 +6,18 @@ import (
 	"log/slog"
 
 	workspacev1 "github.com/Skoowshot/qrix-runtime/gen/go/workspace/v1"
+	"github.com/Skoowshot/qrix-runtime/internal/app/service"
 	"github.com/Skoowshot/qrix-runtime/internal/workspace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type Workspace struct {
-	service *workspace.Service
+	service *service.Workspace
 	workspacev1.UnimplementedWorkspaceServiceServer
 }
 
-func NewWorkspace(service *workspace.Service) *Workspace {
+func NewWorkspace(service *service.Workspace) *Workspace {
 	return &Workspace{
 		service: service,
 	}
