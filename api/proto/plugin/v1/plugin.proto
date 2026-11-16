@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package qrixr.plugin.v1;
+
+option go_package = "github.com/Skoowshot/qrix-runtime/gen/go/plugin/v1;pluginv1";
+
+service PluginService {
+  rpc Instantiate(InstantiateRequest) returns (InstantiateResponse);
+}
+
+message InstantiateRequest {
+  uint64 workspace_id = 1;
+  repeated Descriptor descriptors = 2;
+}
+
+message Descriptor {
+  uint64 plugin_id = 1;
+  bytes config = 2;
+}
+
+message InstantiateResponse {}
