@@ -5,12 +5,10 @@ package qrixr.plugin.v1;
 option go_package = "github.com/Skoowshot/qrix-runtime/gen/go/plugin/v1;pluginv1";
 
 service PluginService {
-  rpc Instantiate(InstantiateRequest) returns (InstantiateResponse);
-}
-
-message InstantiateRequest {
-  uint64 workspace_id = 1;
-  repeated Descriptor descriptors = 2;
+  rpc InstantiateSlots(InstantiateSlotsRequest) returns (InstantiateSlotsResponse);
+  rpc ListSlots(ListSlotsRequest) returns (ListSlotsResponse);
+  rpc DestroySlots(DestroySlotsRequest) returns (DestroySlotsResponse);
+  rpc ListPlugins(ListPluginsRequest) returns (ListPluginsResponse);
 }
 
 message Descriptor {
@@ -18,4 +16,27 @@ message Descriptor {
   bytes config = 2;
 }
 
-message InstantiateResponse {}
+message InstantiateSlotsRequest {
+  repeated Descriptor descriptors = 1;
+}
+
+message InstantiateSlotsResponse {}
+
+message ListSlotsRequest {}
+
+message ListSlotsResponse {
+  repeated uint64 plugin_ids = 1;
+}
+
+message DestroySlotsRequest {
+  repeated uint64 plugin_ids = 1;
+}
+
+message DestroySlotsResponse {}
+
+message ListPluginsRequest {}
+
+message ListPluginsResponse {
+  repeated uint64 ids = 1;
+  map<string, uint64> name_to_id = 2;
+}
