@@ -1,4 +1,4 @@
-package disk
+package mount
 
 import (
 	"path/filepath"
@@ -13,13 +13,13 @@ func TestFlatLayout(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		layout Layout
+		layout DiskLayout
 		hash   cas.Hash
 		want   string
 	}{
 		{
 			name:   "FlatLayout returns raw hex",
-			layout: FlatLayout(),
+			layout: FlatDiskLayout(),
 			hash:   sampleHash,
 			want:   hexStr,
 		},
@@ -41,31 +41,31 @@ func TestShardedLayout(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		layout Layout
+		layout DiskLayout
 		hash   cas.Hash
 		want   string
 	}{
 		{
 			name:   "ShardedLayout 2 levels",
-			layout: ShardedLayout(2),
+			layout: ShardedDiskLayout(2),
 			hash:   sampleHash,
 			want:   filepath.Join("01", "02", hexStr),
 		},
 		{
 			name:   "Zero hash keeps leading zeros",
-			layout: ShardedLayout(2),
+			layout: ShardedDiskLayout(2),
 			hash:   cas.Hash([16]byte{}),
 			want:   filepath.Join("00", "00", "00000000000000000000000000000000"),
 		},
 		{
 			name:   "Zero or negative levels fallback to flat",
-			layout: ShardedLayout(0),
+			layout: ShardedDiskLayout(0),
 			hash:   sampleHash,
 			want:   hexStr,
 		},
 		{
 			name:   "Prefix longer than hash length falls back to flat",
-			layout: ShardedLayout(20), // 40 > 32
+			layout: ShardedDiskLayout(20), // 40 > 32
 			hash:   sampleHash,
 			want:   hexStr,
 		},

@@ -1,4 +1,4 @@
-package disk
+package mount
 
 import (
 	"path/filepath"
@@ -8,18 +8,18 @@ import (
 
 const shardingLevelSize = 2
 
-// Layout defines how the contents are aligned inside of disk.Mount.
-type Layout func(hash cas.Hash) string
+// DiskLayout defines how the contents are aligned inside of disk.Mount.
+type DiskLayout func(hash cas.Hash) string
 
-// FlatLayout aligns the contents flat, all files in the same directory.
-func FlatLayout() Layout {
+// FlatDiskLayout aligns the contents flat, all files in the same directory.
+func FlatDiskLayout() DiskLayout {
 	return func(hash cas.Hash) string {
 		return hash.HexString()
 	}
 }
 
-// ShardedLayout shards the contents by defined levels, files split into multiple directories.
-func ShardedLayout(shardingLevels int) Layout {
+// ShardedDiskLayout shards the contents by defined levels, files split into multiple directories.
+func ShardedDiskLayout(shardingLevels int) DiskLayout {
 	return func(hash cas.Hash) string {
 		hexHash := hash.HexString()
 		if shardingLevels <= 0 {
