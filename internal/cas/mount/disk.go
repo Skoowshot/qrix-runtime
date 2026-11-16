@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 
 	"github.com/Skoowshot/qrix-runtime/internal/cas"
-	"github.com/Skoowshot/qrix-runtime/internal/cas/disk"
 )
 
 const standardDirPerms os.FileMode = 0755
@@ -17,15 +16,15 @@ const putTemporaryFilePattern = "put-*"
 
 var _ cas.Mount = (*Disk)(nil)
 
-// Disk is a physical disk implementation of cas.Mount, laying out files by given Layout at the given TargetPath
+// Disk is a physical disk implementation of cas.Mount, laying out files by given DiskLayout at the given TargetPath
 type Disk struct {
 	targetPath string
-	layout     disk.Layout
+	layout     DiskLayout
 }
 
 func NewDisk(
 	targetPath string,
-	layout disk.Layout,
+	layout DiskLayout,
 ) *Disk {
 	return &Disk{
 		targetPath: targetPath,
