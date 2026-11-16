@@ -99,7 +99,7 @@ func setupClient(t *testing.T) workspacev1.WorkspaceServiceClient {
 	lis := bufconn.Listen(1024 * 1024)
 	srv := grpc.NewServer()
 
-	wsSvc := service.NewPlugin(workspace.NewRegistry())
+	wsSvc := service.NewWorkspace(workspace.NewRegistry())
 	workspacev1.RegisterWorkspaceServiceServer(srv, NewWorkspace(wsSvc))
 
 	go func() { _ = srv.Serve(lis) }()
