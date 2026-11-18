@@ -27,6 +27,7 @@ func ListenControl(
 		return nil, err
 	}
 	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		middleware.Error(),
 		middleware.Workspace(),
 	))
 

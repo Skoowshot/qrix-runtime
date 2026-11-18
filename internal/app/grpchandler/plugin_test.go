@@ -330,6 +330,7 @@ func setupPluginClient(t *testing.T) (pluginv1.PluginServiceClient, *plugin.Regi
 
 	lis := bufconn.Listen(1024 * 1024)
 	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		middleware.Error(),
 		middleware.Workspace(),
 	))
 

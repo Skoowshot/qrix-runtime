@@ -5,13 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
 
 	pluginv1 "github.com/Skoowshot/qrix-runtime/gen/go/plugin/v1"
 	"github.com/Skoowshot/qrix-runtime/internal/app/middleware"
 	"github.com/Skoowshot/qrix-runtime/internal/app/service"
 	"github.com/Skoowshot/qrix-runtime/internal/plugin"
-	"github.com/Skoowshot/qrix-runtime/internal/workspace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -43,16 +41,7 @@ func (p *Plugin) InstantiateSlots(ctx context.Context, req *pluginv1.Instantiate
 		return nil, status.Errorf(codes.InvalidArgument, "invalid descriptors: %v", err)
 	}
 	if err := p.service.InstantiateSlots(ctx, wsID, descriptors); err != nil {
-		//todo interceptor
-		switch {
-		case errors.Is(err, workspace.ErrNotFound),
-			errors.Is(err, plugin.ErrNotFound):
-			return nil, status.Error(codes.NotFound, err.Error())
-		case errors.Is(err, plugin.ErrSlotAlreadyExists):
-			return nil, status.Error(codes.AlreadyExists, err.Error())
-		}
-		slog.ErrorContext(ctx, "failed to instantiate slots", "err", err)
-		return nil, status.Error(codes.Internal, "internal server error")
+		return nil, err
 	}
 
 	return &pluginv1.InstantiateSlotsResponse{}, nil
@@ -67,13 +56,7 @@ func (p *Plugin) ListSlots(ctx context.Context, req *pluginv1.ListSlotsRequest) 
 
 	ids, err := p.service.ListSlots(ctx, wsID)
 	if err != nil {
-		//todo interceptor
-		switch {
-		case errors.Is(err, workspace.ErrNotFound):
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
-		slog.ErrorContext(ctx, "failed to list slots", "err", err)
-		return nil, status.Error(codes.Internal, "internal server error")
+		return nil, err
 	}
 
 	mappedIds := make([]uint64, len(ids))
@@ -99,13 +82,7 @@ func (p *Plugin) DestroySlots(ctx context.Context, req *pluginv1.DestroySlotsReq
 	}
 
 	if err := p.service.DestroySlots(ctx, wsID, pluginIds); err != nil {
-		//todo interceptor
-		switch {
-		case errors.Is(err, workspace.ErrNotFound):
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
-		slog.ErrorContext(ctx, "failed to destroy slots", "err", err)
-		return nil, status.Error(codes.Internal, "internal server error")
+		return nil, err
 	}
 
 	return &pluginv1.DestroySlotsResponse{}, nil
@@ -115,8 +92,7 @@ func (p *Plugin) DestroySlots(ctx context.Context, req *pluginv1.DestroySlotsReq
 func (p *Plugin) ListPlugins(ctx context.Context, req *pluginv1.ListPluginsRequest) (*pluginv1.ListPluginsResponse, error) {
 	ids, mapNames, err := p.service.ListPlugins(ctx)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to list plugins", "err", err)
-		return nil, status.Error(codes.Internal, "internal server error")
+		return nil, err
 	}
 
 	mappedIds := make([]uint64, len(ids))
