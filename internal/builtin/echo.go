@@ -9,7 +9,7 @@ import (
 type Echo struct{}
 
 type echoConfig struct {
-	Msg string `json:"msg"`
+	InitMsg string `json:"init_msg"`
 }
 
 func (e *Echo) Init(ctx context.Context, config plugin.InitConfig, slot *plugin.Slot) error {
