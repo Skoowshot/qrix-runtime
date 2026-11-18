@@ -17,15 +17,15 @@ func Workspace() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
-			return nil, status.Errorf(codes.InvalidArgument, "missing metadata")
+			return handler(ctx, req)
 		}
 		vals := md.Get("workspace")
 		if len(vals) == 0 {
-			return nil, status.Errorf(codes.InvalidArgument, "missing workspace")
+			return handler(ctx, req)
 		}
 		wsID, err := strconv.ParseUint(vals[0], 10, 64)
 		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid workspace")
+			return nil, status.Error(codes.InvalidArgument, "invalid workspace")
 		}
 		ctx = context.WithValue(ctx, wsIDKey{}, workspace.ID(wsID))
 		return handler(ctx, req)
