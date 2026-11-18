@@ -8,6 +8,7 @@ import (
 
 	"github.com/Skoowshot/qrix-runtime/internal/app/server"
 	"github.com/Skoowshot/qrix-runtime/internal/app/service"
+	"github.com/Skoowshot/qrix-runtime/internal/plugin"
 	"github.com/Skoowshot/qrix-runtime/internal/workspace"
 )
 
@@ -23,9 +24,12 @@ func NewApp() *App {
 
 func (app *App) Start() error {
 	wsRegistry := workspace.NewRegistry()
-	wsService := service.NewWorkspace(wsRegistry)
+	plgRegistry := plugin.NewRegistry()
 
-	ctrlServer, err := server.ListenControl(":7178", wsService)
+	wsService := service.NewWorkspace(wsRegistry)
+	plgService := service.NewPlugin(plgRegistry, wsRegistry)
+
+	ctrlServer, err := server.ListenControl(":7178", wsService, plgService)
 	if err != nil {
 		return fmt.Errorf("create control server: %w", err)
 	}
