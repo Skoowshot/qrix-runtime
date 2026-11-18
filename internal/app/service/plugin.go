@@ -10,16 +10,19 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// SlotDescriptor pairs a plugin ID with its configuration for slot instantiation.
 type SlotDescriptor struct {
 	ID     plugin.ID
 	Config plugin.Config
 }
 
+// Plugin manages plugin slot lifecycles within workspaces and queries registered plugins.
 type Plugin struct {
 	pluginRepo *plugin.Registry
 	wsRepo     *workspace.Registry
 }
 
+// NewPlugin creates a new Plugin service backed by the given plugin and workspace registries.
 func NewPlugin(pluginRepo *plugin.Registry, wsRepo *workspace.Registry) *Plugin {
 	return &Plugin{
 		pluginRepo: pluginRepo,
@@ -27,6 +30,8 @@ func NewPlugin(pluginRepo *plugin.Registry, wsRepo *workspace.Registry) *Plugin 
 	}
 }
 
+// InstantiateSlots resolves, initializes, and attaches plugin slots to the specified workspace.
+// If any step fails, initialized slots are closed and any attached slots from the batch are rolled back.
 func (s *Plugin) InstantiateSlots(ctx context.Context, wsID workspace.ID, descriptors []SlotDescriptor) error {
 	if err := ctx.Err(); err != nil {
 		return err
@@ -49,6 +54,7 @@ func (s *Plugin) InstantiateSlots(ctx context.Context, wsID workspace.ID, descri
 	return attachSlots(ws, descriptors, slots)
 }
 
+// ListSlots returns the IDs of all plugin slots currently attached to the specified workspace.
 func (s *Plugin) ListSlots(ctx context.Context, wsID workspace.ID) ([]plugin.ID, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -61,6 +67,7 @@ func (s *Plugin) ListSlots(ctx context.Context, wsID workspace.ID) ([]plugin.ID,
 	return ws.ListSlots(), nil
 }
 
+// DestroySlots detaches and closes the specified plugin slots in parallel, joining any close errors.
 func (s *Plugin) DestroySlots(ctx context.Context, wsID workspace.ID, pluginIDs []plugin.ID) error {
 	if err := ctx.Err(); err != nil {
 		return err
@@ -82,6 +89,7 @@ func (s *Plugin) DestroySlots(ctx context.Context, wsID workspace.ID, pluginIDs 
 	return errors.Join(errs...)
 }
 
+// ListPlugins returns all registered plugin IDs and their name-to-ID mapping.
 func (s *Plugin) ListPlugins(ctx context.Context) ([]plugin.ID, map[plugin.Name]plugin.ID, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, err
