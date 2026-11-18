@@ -56,7 +56,7 @@ func (s *Plugin) resolvePlugins(ws *workspace.Workspace, descriptors []SlotDescr
 
 	for i, desc := range descriptors {
 		if _, dup := seen[desc.ID]; dup {
-			errs = append(errs, fmt.Errorf("duplicate plugin id: %v", desc.ID))
+			errs = append(errs, fmt.Errorf("%w: %v", plugin.ErrSlotAlreadyExists, desc.ID))
 			continue
 		}
 		seen[desc.ID] = struct{}{}
