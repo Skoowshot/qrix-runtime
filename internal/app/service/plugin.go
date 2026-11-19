@@ -88,12 +88,13 @@ func (s *Plugin) DestroySlots(ctx context.Context, wsID workspace.ID, pluginIDs 
 
 	i := 0
 	for id := range pluginIDMap {
+		workerI := i
 		g.Go(func() {
 			if err := destroySlot(ws, id); err != nil {
-				errs[i] = err
+				errs[workerI] = err
 			}
 		})
-		i += 1
+		i++
 	}
 
 	g.Wait()
@@ -191,7 +192,7 @@ func destroySlot(ws *workspace.Workspace, id plugin.ID) error {
 	if !ok {
 		return nil
 	}
-	if ws.RemoveSlot(id, slot) {
+	if !ws.RemoveSlot(id, slot) {
 		return nil
 	}
 	if err := slot.Close(); err != nil {
