@@ -182,8 +182,11 @@ func initSlot(
 }
 
 func destroySlot(ws *workspace.Workspace, id plugin.ID) error {
-	slot := ws.RemoveSlot(id)
-	if slot == nil {
+	slot, ok := ws.Slot(id)
+	if !ok {
+		return nil
+	}
+	if ws.RemoveSlot(id, slot) {
 		return nil
 	}
 	if err := slot.Close(); err != nil {
