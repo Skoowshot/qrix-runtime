@@ -14,8 +14,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var emptyConfig = json.RawMessage("{}")
-
 // Plugin implements the gRPC server for managing plugin slots and listing registered plugins.
 type Plugin struct {
 	service *service.Plugin
@@ -140,7 +138,7 @@ func mapDescriptors(descriptors []*pluginv1.SlotDescriptor) ([]service.SlotDescr
 
 func mapConfig(cfg []byte) (plugin.Config, error) {
 	if len(cfg) == 0 {
-		return emptyConfig, nil
+		return json.RawMessage("{}"), nil
 	}
 	config := json.RawMessage(cfg)
 	if !config.IsValid() {
