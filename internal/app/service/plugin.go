@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/Skoowshot/qrix-runtime/internal/plugin"
 	"github.com/Skoowshot/qrix-runtime/internal/workspace"
-	"golang.org/x/sync/errgroup"
 )
 
 // SlotDescriptor pairs a plugin ID with its configuration for slot instantiation.
@@ -78,14 +78,18 @@ func (s *Plugin) DestroySlots(ctx context.Context, wsID workspace.ID, pluginIDs 
 		return fmt.Errorf("%w: %d", workspace.ErrNotFound, wsID)
 	}
 
-	var g errgroup.Group
+	var g sync.WaitGroup
 	errs := make([]error, len(pluginIDs))
 
 	for i, id := range pluginIDs {
-		g.Go(destroySlotGoroutine(ws, id, errs, i))
+		g.Go(func() {
+			if err := destroySlot(ws, id); err != nil {
+				errs[i] = err
+			}
+		})
 	}
 
-	_ = g.Wait()
+	g.Wait()
 	return errors.Join(errs...)
 }
 
@@ -134,15 +138,19 @@ func (s *Plugin) initSlots(ctx context.Context, descriptors []SlotDescriptor, pl
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	var g errgroup.Group
+	var g sync.WaitGroup
 	slots := make([]*plugin.Slot, len(descriptors))
 	errs := make([]error, len(descriptors))
 
 	for i, desc := range descriptors {
-		g.Go(initSlotGoroutine(ctx, cancel, desc, plugins, i, slots, errs))
+		g.Go(func() {
+			if err := initSlot(ctx, cancel, desc, plugins, slots, i); err != nil {
+				errs[i] = err
+			}
+		})
 	}
 
-	_ = g.Wait()
+	g.Wait()
 	if err := errors.Join(errs...); err != nil {
 		closeSlots(slots)
 		return nil, err
@@ -150,42 +158,39 @@ func (s *Plugin) initSlots(ctx context.Context, descriptors []SlotDescriptor, pl
 	return slots, nil
 }
 
-func initSlotGoroutine(
+func initSlot(
 	ctx context.Context,
 	cancel context.CancelFunc,
 	desc SlotDescriptor,
 	plugins []plugin.Plugin,
-	idx int,
 	slots []*plugin.Slot,
-	errs []error,
-) func() error {
-	return func() error {
-		slot := plugin.NewSlot()
-		initCfg := plugin.InitConfig{
-			Config: desc.Config,
-		}
+	idx int,
+) error {
+	slot := plugin.NewSlot()
+	initCfg := plugin.InitConfig{
+		Config: desc.Config,
+	}
 
-		if err := plugins[idx].Init(ctx, initCfg, slot); err != nil {
-			_ = slot.Close()
-			errs[idx] = fmt.Errorf("init plugin %v: %w", desc.ID, err)
-			cancel()
-			return nil
-		}
-		slots[idx] = slot
-		return nil
+	if err := plugins[idx].Init(ctx, initCfg, slot); err != nil {
+		_ = slot.Close()
+		cancel()
+		return fmt.Errorf("init plugin %v: %w", desc.ID, err)
 	}
+
+	slots[idx] = slot
+	return nil
 }
-func destroySlotGoroutine(ws *workspace.Workspace, id plugin.ID, errs []error, idx int) func() error {
-	return func() error {
-		slot := ws.RemoveSlot(id)
-		if slot == nil {
-			return nil
-		}
-		if err := slot.Close(); err != nil {
-			errs[idx] = fmt.Errorf("close slot %d: %w", id, err)
-		}
+
+func destroySlot(ws *workspace.Workspace, id plugin.ID) error {
+	slot := ws.RemoveSlot(id)
+	if slot == nil {
 		return nil
 	}
+	if err := slot.Close(); err != nil {
+		return fmt.Errorf("close slot %d: %w", id, err)
+	}
+
+	return nil
 }
 
 func attachSlots(ws *workspace.Workspace, descriptors []SlotDescriptor, slots []*plugin.Slot) error {
