@@ -68,7 +68,7 @@ func (s *Plugin) ListSlots(ctx context.Context, wsID workspace.ID) ([]plugin.ID,
 }
 
 // DestroySlots detaches and closes the specified plugin slots in parallel, joining any close errors.
-func (s *Plugin) DestroySlots(ctx context.Context, wsID workspace.ID, pluginIDs []plugin.ID) error {
+func (s *Plugin) DestroySlots(ctx context.Context, wsID workspace.ID, pluginIDs map[plugin.ID]bool) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -81,12 +81,14 @@ func (s *Plugin) DestroySlots(ctx context.Context, wsID workspace.ID, pluginIDs 
 	var g sync.WaitGroup
 	errs := make([]error, len(pluginIDs))
 
-	for i, id := range pluginIDs {
+	i := 0
+	for id := range pluginIDs {
 		g.Go(func() {
 			if err := destroySlot(ws, id); err != nil {
 				errs[i] = err
 			}
 		})
+		i += 1
 	}
 
 	g.Wait()
@@ -106,7 +108,7 @@ func (s *Plugin) ListPlugins(ctx context.Context) ([]plugin.ID, map[plugin.Name]
 }
 
 func (s *Plugin) resolvePlugins(ws *workspace.Workspace, descriptors []SlotDescriptor) ([]plugin.Plugin, error) {
-	seen := make(map[plugin.ID]struct{}, len(descriptors))
+	seen := make(map[plugin.ID]bool, len(descriptors))
 	plugins := make([]plugin.Plugin, len(descriptors))
 	var errs []error
 
@@ -115,7 +117,7 @@ func (s *Plugin) resolvePlugins(ws *workspace.Workspace, descriptors []SlotDescr
 			errs = append(errs, fmt.Errorf("%w: %v", plugin.ErrSlotAlreadyExists, desc.ID))
 			continue
 		}
-		seen[desc.ID] = struct{}{}
+		seen[desc.ID] = true
 
 		plg, ok := s.pluginRepo.Get(desc.ID)
 		if !ok {
