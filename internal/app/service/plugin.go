@@ -101,9 +101,7 @@ func (s *Plugin) ListPlugins(ctx context.Context) ([]plugin.ID, map[plugin.Name]
 		return nil, nil, err
 	}
 
-	ids := s.pluginRepo.List()
-	mapNames := s.pluginRepo.MapNames()
-
+	ids, mapNames := s.pluginRepo.Snapshot()
 	return ids, mapNames, nil
 }
 

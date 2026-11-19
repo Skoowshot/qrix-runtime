@@ -57,18 +57,9 @@ func (r *Registry) GetID(name Name) (ID, bool) {
 	return plugin, ok
 }
 
-// List returns all registered plugin ids.
-func (r *Registry) List() []ID {
+func (r *Registry) Snapshot() (ids []ID, mapNames map[Name]ID) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	return slices.Collect(maps.Keys(r.byID))
-}
-
-// MapNames returns the Name to ID map.
-func (r *Registry) MapNames() map[Name]ID {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	return maps.Clone(r.nameToID)
+	return slices.Collect(maps.Keys(r.byID)), maps.Clone(r.nameToID)
 }
