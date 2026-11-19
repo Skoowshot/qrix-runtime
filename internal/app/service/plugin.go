@@ -199,19 +199,17 @@ func attachSlots(ws *workspace.Workspace, descriptors []SlotDescriptor, slots []
 			continue
 		}
 		closeSlots(slots[i:])
-		removeSlots(ws, descriptors[:i])
+		removeSlots(ws, descriptors[:i], slots[:i])
 		return fmt.Errorf("%w: %v", plugin.ErrSlotAlreadyExists, desc.ID)
 	}
 	return nil
 }
 
-func removeSlots(ws *workspace.Workspace, descriptors []SlotDescriptor) {
-	for _, j := range descriptors {
-		removed := ws.RemoveSlot(j.ID)
-		if removed == nil {
-			continue
+func removeSlots(ws *workspace.Workspace, descriptors []SlotDescriptor, slots []*plugin.Slot) {
+	for i, desc := range descriptors {
+		if ws.RemoveSlot(desc.ID, slots[i]) {
+			_ = slots[i].Close()
 		}
-		_ = removed.Close()
 	}
 }
 

@@ -57,13 +57,16 @@ func (w *Workspace) ListSlots() []plugin.ID {
 	return slices.Collect(maps.Keys(w.slots))
 }
 
-// RemoveSlot detaches and returns the plugin slot for the given ID.
-func (w *Workspace) RemoveSlot(id plugin.ID) *plugin.Slot {
+// RemoveSlot deletes the Slot under given plugin.ID if it is the given target Slot,
+func (w *Workspace) RemoveSlot(id plugin.ID, target *plugin.Slot) bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	s := w.slots[id]
+
+	if w.slots[id] != target {
+		return false
+	}
 	delete(w.slots, id)
-	return s
+	return true
 }
 
 // Close disposes all plugin slots and joins any returned errors.
