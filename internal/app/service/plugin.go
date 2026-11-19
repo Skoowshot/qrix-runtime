@@ -68,7 +68,7 @@ func (s *Plugin) ListSlots(ctx context.Context, wsID workspace.ID) ([]plugin.ID,
 }
 
 // DestroySlots detaches and closes the specified plugin slots in parallel, joining any close errors.
-func (s *Plugin) DestroySlots(ctx context.Context, wsID workspace.ID, pluginIDs map[plugin.ID]bool) error {
+func (s *Plugin) DestroySlots(ctx context.Context, wsID workspace.ID, pluginIDs []plugin.ID) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -81,8 +81,13 @@ func (s *Plugin) DestroySlots(ctx context.Context, wsID workspace.ID, pluginIDs 
 	var g sync.WaitGroup
 	errs := make([]error, len(pluginIDs))
 
+	pluginIDMap := make(map[plugin.ID]bool, len(pluginIDs))
+	for _, id := range pluginIDs {
+		pluginIDMap[id] = true
+	}
+
 	i := 0
-	for id := range pluginIDs {
+	for id := range pluginIDMap {
 		g.Go(func() {
 			if err := destroySlot(ws, id); err != nil {
 				errs[i] = err

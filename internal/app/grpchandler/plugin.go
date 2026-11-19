@@ -74,9 +74,9 @@ func (p *Plugin) DestroySlots(ctx context.Context, req *pluginv1.DestroySlotsReq
 		return nil, status.Error(codes.InvalidArgument, "missing workspace")
 	}
 
-	pluginIds := make(map[plugin.ID]bool, len(req.PluginIds))
-	for _, id := range req.PluginIds {
-		pluginIds[plugin.ID(id)] = true
+	pluginIds := make([]plugin.ID, len(req.PluginIds))
+	for i, id := range req.PluginIds {
+		pluginIds[i] = plugin.ID(id)
 	}
 
 	if err := p.service.DestroySlots(ctx, wsID, pluginIds); err != nil {
