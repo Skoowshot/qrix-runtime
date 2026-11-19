@@ -68,6 +68,9 @@ func (w *Workspace) RemoveSlot(id plugin.ID) *plugin.Slot {
 
 // Close disposes all plugin slots and joins any returned errors.
 func (w *Workspace) Close() error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
 	errs := make([]error, 0, len(w.slots))
 	for _, v := range w.slots {
 		if err := v.Close(); err != nil {
