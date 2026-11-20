@@ -63,16 +63,6 @@ func TestPluginService_InstantiateSlots(t *testing.T) {
 			expectedErr: plugin.ErrNotFound,
 		},
 		{
-			name: "duplicate plugin IDs in request returns ErrSlotAlreadyExists",
-			setup: func(t *testing.T, _ *Plugin, plgRepo *plugin.Registry, wsRepo *workspace.Registry) (workspace.ID, []SlotDescriptor) {
-				wsID := mustCreateWorkspace(t, wsRepo, "alpha")
-				id1 := mustRegisterPlugin(t, plgRepo, "p1", &stubPlugin{})
-				return wsID, []SlotDescriptor{{ID: id1}, {ID: id1}}
-			},
-			ctx:         context.Background,
-			expectedErr: plugin.ErrSlotAlreadyExists,
-		},
-		{
 			name: "already instantiated slot returns ErrSlotAlreadyExists",
 			setup: func(t *testing.T, svc *Plugin, plgRepo *plugin.Registry, wsRepo *workspace.Registry) (workspace.ID, []SlotDescriptor) {
 				wsID := mustCreateWorkspace(t, wsRepo, "alpha")

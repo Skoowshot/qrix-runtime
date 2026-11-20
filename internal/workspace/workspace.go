@@ -57,7 +57,7 @@ func (w *Workspace) PutSlots(slots map[plugin.ID]*plugin.Slot) error {
 		return errors.Join(errs...)
 	}
 
-	maps.Copy(slots, w.slots)
+	maps.Copy(w.slots, slots)
 	return nil
 }
 
