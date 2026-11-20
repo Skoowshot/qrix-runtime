@@ -25,16 +25,16 @@ func ListenEnvironment(addr string) (*Environment, error) {
 }
 
 func (c *Environment) Start() error {
-	slog.Info("starting environment server", "addr", c.listener.Addr())
+	slog.Info("starting env server", "addr", c.listener.Addr())
 	return c.grpcServer.Serve(c.listener)
 }
 
 func (c *Environment) GracefulStop() {
-	slog.Info("gracefully stopping environment server")
+	slog.Info("gracefully stopping env server")
 	c.grpcServer.GracefulStop()
 }
 
 func (c *Environment) Stop() {
-	slog.Info("stopping environment server")
+	slog.Info("stopping env server")
 	c.grpcServer.Stop()
 }
