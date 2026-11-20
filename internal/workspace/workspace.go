@@ -43,6 +43,7 @@ func (w *Workspace) PutSlot(id plugin.ID, slot *plugin.Slot) bool {
 	return true
 }
 
+// PutSlots stores plugin slots atomically in the workspace if none of the IDs are already occupied.
 func (w *Workspace) PutSlots(slots map[plugin.ID]*plugin.Slot) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
