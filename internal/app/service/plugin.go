@@ -58,6 +58,72 @@ func (s *Plugin) InstantiateSlots(ctx context.Context, wsID workspace.ID, descri
 	return nil
 }
 
+// ListSlots returns the IDs of all plugin slots currently attached to the specified workspace.
+func (s *Plugin) ListSlots(ctx context.Context, wsID workspace.ID) ([]plugin.ID, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	ws, ok := s.wsRepo.Get(wsID)
+	if !ok {
+		return nil, fmt.Errorf("%w: %d", workspace.ErrNotFound, wsID)
+	}
+
+	return ws.ListSlots(), nil
+}
+
+// DestroySlots detaches and closes the specified plugin slots in parallel, joining any close errors.
+func (s *Plugin) DestroySlots(ctx context.Context, wsID workspace.ID, pluginIDs []plugin.ID) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	ws, ok := s.wsRepo.Get(wsID)
+	if !ok {
+		return fmt.Errorf("%w: %d", workspace.ErrNotFound, wsID)
+	}
+
+	var wg sync.WaitGroup
+	var errs []error
+	var mu sync.Mutex
+
+	plugins := make(map[plugin.ID]struct{})
+	for _, id := range pluginIDs {
+		if _, exists := plugins[id]; exists {
+			continue
+		}
+		plugins[id] = struct{}{}
+
+		slot := ws.RemoveSlot(id)
+		if slot == nil {
+			continue
+		}
+
+		wg.Go(func() {
+			err := slot.Close()
+			if err != nil {
+				mu.Lock()
+				defer mu.Unlock()
+
+				errs = append(errs, err)
+				return
+			}
+		})
+	}
+	wg.Wait()
+
+	return errors.Join(errs...)
+}
+
+// ListPlugins returns all registered plugin IDs and their name-to-ID mapping.
+func (s *Plugin) ListPlugins(ctx context.Context) ([]plugin.ID, map[plugin.Name]plugin.ID, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, nil, err
+	}
+
+	ids, mapNames := s.pluginRepo.Snapshot()
+	return ids, mapNames, nil
+}
+
 func resolveDescriptors(ctx context.Context, repo *plugin.Registry, descriptors []SlotDescriptor) (map[plugin.ID]plugin.Plugin, map[plugin.ID]plugin.Config, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, err
@@ -143,70 +209,4 @@ func closeSlots(slots map[plugin.ID]*plugin.Slot) {
 		}
 		_ = slot.Close()
 	}
-}
-
-// ListSlots returns the IDs of all plugin slots currently attached to the specified workspace.
-func (s *Plugin) ListSlots(ctx context.Context, wsID workspace.ID) ([]plugin.ID, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-	ws, ok := s.wsRepo.Get(wsID)
-	if !ok {
-		return nil, fmt.Errorf("%w: %d", workspace.ErrNotFound, wsID)
-	}
-
-	return ws.ListSlots(), nil
-}
-
-// DestroySlots detaches and closes the specified plugin slots in parallel, joining any close errors.
-func (s *Plugin) DestroySlots(ctx context.Context, wsID workspace.ID, pluginIDs []plugin.ID) error {
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-
-	ws, ok := s.wsRepo.Get(wsID)
-	if !ok {
-		return fmt.Errorf("%w: %d", workspace.ErrNotFound, wsID)
-	}
-
-	var wg sync.WaitGroup
-	var errs []error
-	var mu sync.Mutex
-
-	plugins := make(map[plugin.ID]struct{})
-	for _, id := range pluginIDs {
-		if _, exists := plugins[id]; exists {
-			continue
-		}
-		plugins[id] = struct{}{}
-
-		slot := ws.RemoveSlot(id)
-		if slot == nil {
-			continue
-		}
-
-		wg.Go(func() {
-			err := slot.Close()
-			if err != nil {
-				mu.Lock()
-				defer mu.Unlock()
-
-				errs = append(errs, err)
-				return
-			}
-		})
-	}
-	wg.Wait()
-
-	return errors.Join(errs...)
-}
-
-// ListPlugins returns all registered plugin IDs and their name-to-ID mapping.
-func (s *Plugin) ListPlugins(ctx context.Context) ([]plugin.ID, map[plugin.Name]plugin.ID, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, nil, err
-	}
-
-	ids, mapNames := s.pluginRepo.Snapshot()
-	return ids, mapNames, nil
 }
