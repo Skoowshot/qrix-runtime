@@ -30,8 +30,8 @@ func NewPlugin(pluginRepo *plugin.Registry, wsRepo *workspace.Registry) *Plugin 
 	}
 }
 
-// InstantiateSlots resolves, initializes, and attaches plugin slots to the specified workspace.
-// If any step fails, initialized slots are closed and any attached slots from the batch are rolled back.
+// InstantiateSlots resolves, creates, and puts plugin slots into the specified workspace.
+// If any step fails, created slots are closed and any put slots from the batch are rolled back.
 func (s *Plugin) InstantiateSlots(ctx context.Context, wsID workspace.ID, descriptors []SlotDescriptor) error {
 	if err := ctx.Err(); err != nil {
 		return err
@@ -41,17 +41,108 @@ func (s *Plugin) InstantiateSlots(ctx context.Context, wsID workspace.ID, descri
 		return fmt.Errorf("%w: %d", workspace.ErrNotFound, wsID)
 	}
 
-	plugins, err := s.resolvePlugins(ws, descriptors)
+	plugins, configs, err := resolveDescriptors(ctx, s.pluginRepo, descriptors)
 	if err != nil {
 		return err
 	}
 
-	slots, err := s.initSlots(ctx, descriptors, plugins)
+	slots, err := createSlots(ctx, configs, plugins)
 	if err != nil {
 		return err
 	}
 
-	return attachSlots(ws, descriptors, slots)
+	if err := ws.PutSlots(slots); err != nil {
+		closeSlots(slots)
+		return err
+	}
+	return nil
+}
+
+func resolveDescriptors(ctx context.Context, repo *plugin.Registry, descriptors []SlotDescriptor) (map[plugin.ID]plugin.Plugin, map[plugin.ID]plugin.Config, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, nil, err
+	}
+
+	var errs []error
+
+	plugins := make(map[plugin.ID]plugin.Plugin)
+	configs := make(map[plugin.ID]plugin.Config)
+	for _, desc := range descriptors {
+		id := desc.ID
+		plg, ok := repo.Get(id)
+		if !ok {
+			errs = append(errs, fmt.Errorf("%w: %d", plugin.ErrNotFound, id))
+		}
+		plugins[id] = plg
+		configs[id] = desc.Config
+	}
+
+	return plugins, configs, errors.Join(errs...)
+}
+
+func createSlots(ctx context.Context, descriptors map[plugin.ID]plugin.Config, plugins map[plugin.ID]plugin.Plugin) (map[plugin.ID]*plugin.Slot, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	var errs []error
+
+	slots := make(map[plugin.ID]*plugin.Slot)
+	for id, config := range descriptors {
+		plg, ok := plugins[id]
+		if !ok {
+			mu.Lock()
+			errs = append(errs, fmt.Errorf("%w: %d", plugin.ErrNotFound, id))
+			mu.Unlock()
+			continue
+		}
+
+		wg.Go(func() {
+			slot, err := createSlot(ctx, config, plg)
+			mu.Lock()
+			defer mu.Unlock()
+			if err != nil {
+				errs = append(errs, err)
+				return
+			}
+			slots[id] = slot
+		})
+	}
+	wg.Wait()
+
+	if err := errors.Join(errs...); err != nil {
+		closeSlots(slots)
+		return nil, err
+	}
+	return slots, nil
+}
+
+func createSlot(ctx context.Context, config plugin.Config, plg plugin.Plugin) (*plugin.Slot, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	slot := plugin.NewSlot()
+	init := plugin.InitConfig{
+		Config: config,
+	}
+
+	if err := plg.Init(ctx, init, slot); err != nil {
+		_ = slot.Close()
+		return nil, err
+	}
+	return slot, nil
+}
+
+func closeSlots(slots map[plugin.ID]*plugin.Slot) {
+	for _, slot := range slots {
+		if slot == nil {
+			continue
+		}
+		_ = slot.Close()
+	}
 }
 
 // ListSlots returns the IDs of all plugin slots currently attached to the specified workspace.
@@ -78,26 +169,35 @@ func (s *Plugin) DestroySlots(ctx context.Context, wsID workspace.ID, pluginIDs 
 		return fmt.Errorf("%w: %d", workspace.ErrNotFound, wsID)
 	}
 
-	var g sync.WaitGroup
-	errs := make([]error, len(pluginIDs))
+	var wg sync.WaitGroup
+	var errs []error
+	var mu sync.Mutex
 
-	pluginIDMap := make(map[plugin.ID]bool, len(pluginIDs))
+	plugins := make(map[plugin.ID]struct{})
 	for _, id := range pluginIDs {
-		pluginIDMap[id] = true
-	}
+		if _, exists := plugins[id]; exists {
+			continue
+		}
+		plugins[id] = struct{}{}
 
-	i := 0
-	for id := range pluginIDMap {
-		workerI := i
-		g.Go(func() {
-			if err := destroySlot(ws, id); err != nil {
-				errs[workerI] = err
+		slot := ws.RemoveSlot(id)
+		if slot == nil {
+			continue
+		}
+
+		wg.Go(func() {
+			err := slot.Close()
+			if err != nil {
+				mu.Lock()
+				defer mu.Unlock()
+
+				errs = append(errs, err)
+				return
 			}
 		})
-		i++
 	}
+	wg.Wait()
 
-	g.Wait()
 	return errors.Join(errs...)
 }
 
@@ -109,124 +209,4 @@ func (s *Plugin) ListPlugins(ctx context.Context) ([]plugin.ID, map[plugin.Name]
 
 	ids, mapNames := s.pluginRepo.Snapshot()
 	return ids, mapNames, nil
-}
-
-func (s *Plugin) resolvePlugins(ws *workspace.Workspace, descriptors []SlotDescriptor) ([]plugin.Plugin, error) {
-	seen := make(map[plugin.ID]bool, len(descriptors))
-	plugins := make([]plugin.Plugin, len(descriptors))
-	var errs []error
-
-	for i, desc := range descriptors {
-		if _, dup := seen[desc.ID]; dup {
-			errs = append(errs, fmt.Errorf("%w: %v", plugin.ErrSlotAlreadyExists, desc.ID))
-			continue
-		}
-		seen[desc.ID] = true
-
-		plg, ok := s.pluginRepo.Get(desc.ID)
-		if !ok {
-			errs = append(errs, fmt.Errorf("%w: %v", plugin.ErrNotFound, desc.ID))
-			continue
-		}
-		if _, ok := ws.Slot(desc.ID); ok {
-			errs = append(errs, fmt.Errorf("%w: %v", plugin.ErrSlotAlreadyExists, desc.ID))
-			continue
-		}
-		plugins[i] = plg
-	}
-	if len(errs) > 0 {
-		return nil, errors.Join(errs...)
-	}
-	return plugins, nil
-}
-
-func (s *Plugin) initSlots(ctx context.Context, descriptors []SlotDescriptor, plugins []plugin.Plugin) ([]*plugin.Slot, error) {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	var g sync.WaitGroup
-	slots := make([]*plugin.Slot, len(descriptors))
-	errs := make([]error, len(descriptors))
-
-	for i, desc := range descriptors {
-		g.Go(func() {
-			if err := initSlot(ctx, cancel, desc, plugins, slots, i); err != nil {
-				errs[i] = err
-			}
-		})
-	}
-
-	g.Wait()
-	if err := errors.Join(errs...); err != nil {
-		closeSlots(slots)
-		return nil, err
-	}
-	return slots, nil
-}
-
-func initSlot(
-	ctx context.Context,
-	cancel context.CancelFunc,
-	desc SlotDescriptor,
-	plugins []plugin.Plugin,
-	slots []*plugin.Slot,
-	idx int,
-) error {
-	slot := plugin.NewSlot()
-	initCfg := plugin.InitConfig{
-		Config: desc.Config,
-	}
-
-	if err := plugins[idx].Init(ctx, initCfg, slot); err != nil {
-		_ = slot.Close()
-		cancel()
-		return fmt.Errorf("init plugin %v: %w", desc.ID, err)
-	}
-
-	slots[idx] = slot
-	return nil
-}
-
-func destroySlot(ws *workspace.Workspace, id plugin.ID) error {
-	slot, ok := ws.Slot(id)
-	if !ok {
-		return nil
-	}
-	if !ws.RemoveSlot(id, slot) {
-		return nil
-	}
-	if err := slot.Close(); err != nil {
-		return fmt.Errorf("close slot %d: %w", id, err)
-	}
-
-	return nil
-}
-
-func attachSlots(ws *workspace.Workspace, descriptors []SlotDescriptor, slots []*plugin.Slot) error {
-	for i, desc := range descriptors {
-		if ws.PutSlot(desc.ID, slots[i]) {
-			continue
-		}
-		closeSlots(slots[i:])
-		removeSlots(ws, descriptors[:i], slots[:i])
-		return fmt.Errorf("%w: %v", plugin.ErrSlotAlreadyExists, desc.ID)
-	}
-	return nil
-}
-
-func removeSlots(ws *workspace.Workspace, descriptors []SlotDescriptor, slots []*plugin.Slot) {
-	for i, desc := range descriptors {
-		if ws.RemoveSlot(desc.ID, slots[i]) {
-			_ = slots[i].Close()
-		}
-	}
-}
-
-func closeSlots(slots []*plugin.Slot) {
-	for _, slot := range slots {
-		if slot == nil {
-			continue
-		}
-		_ = slot.Close()
-	}
 }

@@ -2,6 +2,7 @@ package workspace
 
 import (
 	"errors"
+	"fmt"
 	"maps"
 	"slices"
 	"sync"
@@ -42,6 +43,24 @@ func (w *Workspace) PutSlot(id plugin.ID, slot *plugin.Slot) bool {
 	return true
 }
 
+func (w *Workspace) PutSlots(slots map[plugin.ID]*plugin.Slot) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	var errs []error
+	for id := range slots {
+		if _, exists := w.slots[id]; exists {
+			errs = append(errs, fmt.Errorf("%w: %d", plugin.ErrSlotAlreadyExists, id))
+		}
+	}
+	if len(errs) > 0 {
+		return errors.Join(errs...)
+	}
+
+	maps.Copy(slots, w.slots)
+	return nil
+}
+
 // Slot returns the plugin slot associated with the given ID.
 func (w *Workspace) Slot(id plugin.ID) (*plugin.Slot, bool) {
 	w.mu.RLock()
@@ -57,16 +76,14 @@ func (w *Workspace) ListSlots() []plugin.ID {
 	return slices.Collect(maps.Keys(w.slots))
 }
 
-// RemoveSlot deletes the Slot under given plugin.ID if it is the given target Slot,
-func (w *Workspace) RemoveSlot(id plugin.ID, target *plugin.Slot) bool {
+// RemoveSlot deletes the Slot under given plugin.ID and returns it.
+func (w *Workspace) RemoveSlot(id plugin.ID) *plugin.Slot {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	if w.slots[id] != target {
-		return false
-	}
+	slot := w.slots[id]
 	delete(w.slots, id)
-	return true
+	return slot
 }
 
 // Close disposes all plugin slots and joins any returned errors.
