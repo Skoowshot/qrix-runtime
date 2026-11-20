@@ -2,6 +2,8 @@ package plugin
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"sync"
 )
 
@@ -53,4 +55,11 @@ func (r *Registry) GetID(name Name) (ID, bool) {
 
 	plugin, ok := r.nameToID[name]
 	return plugin, ok
+}
+
+func (r *Registry) Snapshot() (ids []ID, mapNames map[Name]ID) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	return slices.Collect(maps.Keys(r.byID)), maps.Clone(r.nameToID)
 }

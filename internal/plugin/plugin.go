@@ -1,6 +1,9 @@
 package plugin
 
-import "context"
+import (
+	"context"
+	"encoding/json"
+)
 
 // ID is a unique runtime hot-path identifier of Plugin.
 type ID uint64
@@ -14,6 +17,10 @@ type Plugin interface {
 	Init(ctx context.Context, config InitConfig, slot *Slot) error
 }
 
+// Config holds information for plugin setup.
+type Config = json.RawMessage
+
 // InitConfig holds initialization parameters and metadata passed to a plugin during startup.
 type InitConfig struct {
+	Config Config
 }
