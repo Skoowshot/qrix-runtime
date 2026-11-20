@@ -124,7 +124,11 @@ func (s *Plugin) ListPlugins(ctx context.Context) ([]plugin.ID, map[plugin.Name]
 	return ids, mapNames, nil
 }
 
-func resolveDescriptors(ctx context.Context, repo *plugin.Registry, descriptors []SlotDescriptor) (map[plugin.ID]plugin.Plugin, map[plugin.ID]plugin.Config, error) {
+func resolveDescriptors(
+	ctx context.Context,
+	repo *plugin.Registry,
+	descriptors []SlotDescriptor,
+) (map[plugin.ID]plugin.Plugin, map[plugin.ID]plugin.Config, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, err
 	}
@@ -138,6 +142,7 @@ func resolveDescriptors(ctx context.Context, repo *plugin.Registry, descriptors 
 		plg, ok := repo.Get(id)
 		if !ok {
 			errs = append(errs, fmt.Errorf("%w: %d", plugin.ErrNotFound, id))
+			continue
 		}
 		plugins[id] = plg
 		configs[id] = desc.Config
@@ -146,7 +151,11 @@ func resolveDescriptors(ctx context.Context, repo *plugin.Registry, descriptors 
 	return plugins, configs, errors.Join(errs...)
 }
 
-func createSlots(ctx context.Context, descriptors map[plugin.ID]plugin.Config, plugins map[plugin.ID]plugin.Plugin) (map[plugin.ID]*plugin.Slot, error) {
+func createSlots(
+	ctx context.Context,
+	descriptors map[plugin.ID]plugin.Config,
+	plugins map[plugin.ID]plugin.Plugin,
+) (map[plugin.ID]*plugin.Slot, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
