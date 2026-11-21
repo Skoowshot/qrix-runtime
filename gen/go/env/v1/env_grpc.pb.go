@@ -7,7 +7,10 @@
 package envv1
 
 import (
+	context "context"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -15,10 +18,15 @@ import (
 // Requires gRPC-Go v1.64.0 or later.
 const _ = grpc.SupportPackageIsVersion9
 
+const (
+	EnvironmentService_Connect_FullMethodName = "/qrixr.env.v1.EnvironmentService/Connect"
+)
+
 // EnvironmentServiceClient is the client API for EnvironmentService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EnvironmentServiceClient interface {
+	Connect(ctx context.Context, in *ConnectRequest, opts ...grpc.CallOption) (*ConnectResponse, error)
 }
 
 type environmentServiceClient struct {
@@ -29,10 +37,21 @@ func NewEnvironmentServiceClient(cc grpc.ClientConnInterface) EnvironmentService
 	return &environmentServiceClient{cc}
 }
 
+func (c *environmentServiceClient) Connect(ctx context.Context, in *ConnectRequest, opts ...grpc.CallOption) (*ConnectResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ConnectResponse)
+	err := c.cc.Invoke(ctx, EnvironmentService_Connect_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EnvironmentServiceServer is the server API for EnvironmentService service.
 // All implementations must embed UnimplementedEnvironmentServiceServer
 // for forward compatibility.
 type EnvironmentServiceServer interface {
+	Connect(context.Context, *ConnectRequest) (*ConnectResponse, error)
 	mustEmbedUnimplementedEnvironmentServiceServer()
 }
 
@@ -43,6 +62,9 @@ type EnvironmentServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedEnvironmentServiceServer struct{}
 
+func (UnimplementedEnvironmentServiceServer) Connect(context.Context, *ConnectRequest) (*ConnectResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Connect not implemented")
+}
 func (UnimplementedEnvironmentServiceServer) mustEmbedUnimplementedEnvironmentServiceServer() {}
 func (UnimplementedEnvironmentServiceServer) testEmbeddedByValue()                            {}
 
@@ -64,13 +86,36 @@ func RegisterEnvironmentServiceServer(s grpc.ServiceRegistrar, srv EnvironmentSe
 	s.RegisterService(&EnvironmentService_ServiceDesc, srv)
 }
 
+func _EnvironmentService_Connect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConnectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EnvironmentServiceServer).Connect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EnvironmentService_Connect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EnvironmentServiceServer).Connect(ctx, req.(*ConnectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EnvironmentService_ServiceDesc is the grpc.ServiceDesc for EnvironmentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var EnvironmentService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "qrixr.env.v1.EnvironmentService",
 	HandlerType: (*EnvironmentServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams:     []grpc.StreamDesc{},
-	Metadata:    "env/v1/env.proto",
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Connect",
+			Handler:    _EnvironmentService_Connect_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "env/v1/env.proto",
 }

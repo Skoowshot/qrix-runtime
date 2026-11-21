@@ -10,6 +10,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
+	sync "sync"
 	unsafe "unsafe"
 )
 
@@ -20,18 +21,147 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ConnectRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WorkspaceId   uint64                 `protobuf:"varint,1,opt,name=workspace_id,json=workspaceId,proto3" json:"workspace_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Metadata      []byte                 `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConnectRequest) Reset() {
+	*x = ConnectRequest{}
+	mi := &file_env_v1_env_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConnectRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConnectRequest) ProtoMessage() {}
+
+func (x *ConnectRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConnectRequest.ProtoReflect.Descriptor instead.
+func (*ConnectRequest) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ConnectRequest) GetWorkspaceId() uint64 {
+	if x != nil {
+		return x.WorkspaceId
+	}
+	return 0
+}
+
+func (x *ConnectRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ConnectRequest) GetMetadata() []byte {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+type ConnectResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SessionToken  string                 `protobuf:"bytes,1,opt,name=session_token,json=sessionToken,proto3" json:"session_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConnectResponse) Reset() {
+	*x = ConnectResponse{}
+	mi := &file_env_v1_env_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConnectResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConnectResponse) ProtoMessage() {}
+
+func (x *ConnectResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConnectResponse.ProtoReflect.Descriptor instead.
+func (*ConnectResponse) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ConnectResponse) GetSessionToken() string {
+	if x != nil {
+		return x.SessionToken
+	}
+	return ""
+}
+
 var File_env_v1_env_proto protoreflect.FileDescriptor
 
 const file_env_v1_env_proto_rawDesc = "" +
 	"\n" +
-	"\x10env/v1/env.proto\x12\fqrixr.env.v12\x14\n" +
-	"\x12EnvironmentServiceB\xa2\x01\n" +
+	"\x10env/v1/env.proto\x12\fqrixr.env.v1\"c\n" +
+	"\x0eConnectRequest\x12!\n" +
+	"\fworkspace_id\x18\x01 \x01(\x04R\vworkspaceId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
+	"\bmetadata\x18\x03 \x01(\fR\bmetadata\"6\n" +
+	"\x0fConnectResponse\x12#\n" +
+	"\rsession_token\x18\x01 \x01(\tR\fsessionToken2\\\n" +
+	"\x12EnvironmentService\x12F\n" +
+	"\aConnect\x12\x1c.qrixr.env.v1.ConnectRequest\x1a\x1d.qrixr.env.v1.ConnectResponseB\xa2\x01\n" +
 	"\x10com.qrixr.env.v1B\bEnvProtoP\x01Z2github.com/Skoowshot/qrix-runtime/gen/env/v1;envv1\xa2\x02\x03QEX\xaa\x02\fQrixr.Env.V1\xca\x02\fQrixr\\Env\\V1\xe2\x02\x18Qrixr\\Env\\V1\\GPBMetadata\xea\x02\x0eQrixr::Env::V1b\x06proto3"
 
-var file_env_v1_env_proto_goTypes = []any{}
+var (
+	file_env_v1_env_proto_rawDescOnce sync.Once
+	file_env_v1_env_proto_rawDescData []byte
+)
+
+func file_env_v1_env_proto_rawDescGZIP() []byte {
+	file_env_v1_env_proto_rawDescOnce.Do(func() {
+		file_env_v1_env_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_env_v1_env_proto_rawDesc), len(file_env_v1_env_proto_rawDesc)))
+	})
+	return file_env_v1_env_proto_rawDescData
+}
+
+var file_env_v1_env_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_env_v1_env_proto_goTypes = []any{
+	(*ConnectRequest)(nil),  // 0: qrixr.env.v1.ConnectRequest
+	(*ConnectResponse)(nil), // 1: qrixr.env.v1.ConnectResponse
+}
 var file_env_v1_env_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
+	0, // 0: qrixr.env.v1.EnvironmentService.Connect:input_type -> qrixr.env.v1.ConnectRequest
+	1, // 1: qrixr.env.v1.EnvironmentService.Connect:output_type -> qrixr.env.v1.ConnectResponse
+	1, // [1:2] is the sub-list for method output_type
+	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -48,12 +178,13 @@ func file_env_v1_env_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_env_v1_env_proto_rawDesc), len(file_env_v1_env_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   0,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_env_v1_env_proto_goTypes,
 		DependencyIndexes: file_env_v1_env_proto_depIdxs,
+		MessageInfos:      file_env_v1_env_proto_msgTypes,
 	}.Build()
 	File_env_v1_env_proto = out.File
 	file_env_v1_env_proto_goTypes = nil
