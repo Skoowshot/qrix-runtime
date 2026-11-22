@@ -4,6 +4,10 @@ import (
 	"log/slog"
 	"net"
 
+	envv1 "github.com/Skoowshot/qrix-runtime/gen/go/env/v1"
+	"github.com/Skoowshot/qrix-runtime/internal/app/grpchandler"
+	"github.com/Skoowshot/qrix-runtime/internal/app/middleware"
+	"github.com/Skoowshot/qrix-runtime/internal/app/service"
 	"google.golang.org/grpc"
 )
 
@@ -12,12 +16,17 @@ type Environment struct {
 	grpcServer *grpc.Server
 }
 
-func ListenEnvironment(addr string) (*Environment, error) {
+func ListenEnvironment(addr string, envService *service.Environment) (*Environment, error) {
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, err
 	}
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		middleware.Error(),
+	))
+
+	envv1.RegisterEnvironmentServiceServer(grpcServer, grpchandler.NewEnvironment(envService))
+
 	return &Environment{
 		listener:   lis,
 		grpcServer: grpcServer,

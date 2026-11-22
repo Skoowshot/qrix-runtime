@@ -9,7 +9,13 @@ import (
 )
 
 type Environment struct {
-	workspaceRepo *workspace.Registry
+	wsRepo *workspace.Registry
+}
+
+func NewEnvironment(workspaceRepo *workspace.Registry) *Environment {
+	return &Environment{
+		wsRepo: workspaceRepo,
+	}
 }
 
 func (e *Environment) Connect(ctx context.Context, wsID workspace.ID, name env.Name, metadata env.Metadata) (env.SessionToken, error) {
@@ -17,7 +23,7 @@ func (e *Environment) Connect(ctx context.Context, wsID workspace.ID, name env.N
 		return "", ctx.Err()
 	}
 
-	ws, ok := e.workspaceRepo.Get(wsID)
+	ws, ok := e.wsRepo.Get(wsID)
 	if !ok {
 		return "", fmt.Errorf("%w: %d", workspace.ErrNotFound, wsID)
 	}
