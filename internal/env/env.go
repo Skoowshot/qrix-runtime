@@ -1,6 +1,9 @@
 package env
 
-import "io"
+import (
+	"encoding/json"
+	"io"
+)
 
 // ID is a unique runtime hot-path identifier of Environment.
 type ID uint64
@@ -12,3 +15,6 @@ type Name string
 type Environment interface {
 	io.Closer
 }
+
+// Metadata contains external Environment data.
+type Metadata = json.RawMessage
