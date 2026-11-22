@@ -3,17 +3,20 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Skoowshot/qrix-runtime/internal/workspace"
 )
 
 type Workspace struct {
-	registry *workspace.Registry
+	sessionTTL time.Duration
+	registry   *workspace.Registry
 }
 
-func NewWorkspace(registry *workspace.Registry) *Workspace {
+func NewWorkspace(sessionTTL time.Duration, registry *workspace.Registry) *Workspace {
 	return &Workspace{
-		registry: registry,
+		sessionTTL: sessionTTL,
+		registry:   registry,
 	}
 }
 
@@ -22,7 +25,7 @@ func (s *Workspace) Create(ctx context.Context, name workspace.Name) (workspace.
 		return 0, err
 	}
 
-	ws := workspace.NewWorkspace()
+	ws := workspace.NewWorkspace(s.sessionTTL)
 
 	id, err := s.registry.Put(name, ws)
 	if err != nil {
