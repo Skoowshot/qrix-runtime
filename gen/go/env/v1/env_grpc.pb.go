@@ -19,7 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	EnvironmentService_Connect_FullMethodName = "/qrixr.env.v1.EnvironmentService/Connect"
+	EnvironmentService_Connect_FullMethodName    = "/qrixr.env.v1.EnvironmentService/Connect"
+	EnvironmentService_OpenCall_FullMethodName   = "/qrixr.env.v1.EnvironmentService/OpenCall"
+	EnvironmentService_OpenStream_FullMethodName = "/qrixr.env.v1.EnvironmentService/OpenStream"
 )
 
 // EnvironmentServiceClient is the client API for EnvironmentService service.
@@ -27,6 +29,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EnvironmentServiceClient interface {
 	Connect(ctx context.Context, in *ConnectRequest, opts ...grpc.CallOption) (*ConnectResponse, error)
+	OpenCall(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[OpenCallRequest, OpenCallResponse], error)
+	OpenStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[OpenStreamRequest, OpenStreamResponse], error)
 }
 
 type environmentServiceClient struct {
@@ -47,11 +51,39 @@ func (c *environmentServiceClient) Connect(ctx context.Context, in *ConnectReque
 	return out, nil
 }
 
+func (c *environmentServiceClient) OpenCall(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[OpenCallRequest, OpenCallResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &EnvironmentService_ServiceDesc.Streams[0], EnvironmentService_OpenCall_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[OpenCallRequest, OpenCallResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EnvironmentService_OpenCallClient = grpc.BidiStreamingClient[OpenCallRequest, OpenCallResponse]
+
+func (c *environmentServiceClient) OpenStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[OpenStreamRequest, OpenStreamResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &EnvironmentService_ServiceDesc.Streams[1], EnvironmentService_OpenStream_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[OpenStreamRequest, OpenStreamResponse]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EnvironmentService_OpenStreamClient = grpc.BidiStreamingClient[OpenStreamRequest, OpenStreamResponse]
+
 // EnvironmentServiceServer is the server API for EnvironmentService service.
 // All implementations must embed UnimplementedEnvironmentServiceServer
 // for forward compatibility.
 type EnvironmentServiceServer interface {
 	Connect(context.Context, *ConnectRequest) (*ConnectResponse, error)
+	OpenCall(grpc.BidiStreamingServer[OpenCallRequest, OpenCallResponse]) error
+	OpenStream(grpc.BidiStreamingServer[OpenStreamRequest, OpenStreamResponse]) error
 	mustEmbedUnimplementedEnvironmentServiceServer()
 }
 
@@ -64,6 +96,12 @@ type UnimplementedEnvironmentServiceServer struct{}
 
 func (UnimplementedEnvironmentServiceServer) Connect(context.Context, *ConnectRequest) (*ConnectResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Connect not implemented")
+}
+func (UnimplementedEnvironmentServiceServer) OpenCall(grpc.BidiStreamingServer[OpenCallRequest, OpenCallResponse]) error {
+	return status.Error(codes.Unimplemented, "method OpenCall not implemented")
+}
+func (UnimplementedEnvironmentServiceServer) OpenStream(grpc.BidiStreamingServer[OpenStreamRequest, OpenStreamResponse]) error {
+	return status.Error(codes.Unimplemented, "method OpenStream not implemented")
 }
 func (UnimplementedEnvironmentServiceServer) mustEmbedUnimplementedEnvironmentServiceServer() {}
 func (UnimplementedEnvironmentServiceServer) testEmbeddedByValue()                            {}
@@ -104,6 +142,20 @@ func _EnvironmentService_Connect_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EnvironmentService_OpenCall_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EnvironmentServiceServer).OpenCall(&grpc.GenericServerStream[OpenCallRequest, OpenCallResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EnvironmentService_OpenCallServer = grpc.BidiStreamingServer[OpenCallRequest, OpenCallResponse]
+
+func _EnvironmentService_OpenStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(EnvironmentServiceServer).OpenStream(&grpc.GenericServerStream[OpenStreamRequest, OpenStreamResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type EnvironmentService_OpenStreamServer = grpc.BidiStreamingServer[OpenStreamRequest, OpenStreamResponse]
+
 // EnvironmentService_ServiceDesc is the grpc.ServiceDesc for EnvironmentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -116,6 +168,19 @@ var EnvironmentService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _EnvironmentService_Connect_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "OpenCall",
+			Handler:       _EnvironmentService_OpenCall_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "OpenStream",
+			Handler:       _EnvironmentService_OpenStream_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "env/v1/env.proto",
 }

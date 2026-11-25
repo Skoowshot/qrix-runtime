@@ -125,6 +125,566 @@ func (x *ConnectResponse) GetSessionToken() string {
 	return ""
 }
 
+type OpenCallRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Frame         *CallFrame             `protobuf:"bytes,1,opt,name=frame,proto3" json:"frame,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OpenCallRequest) Reset() {
+	*x = OpenCallRequest{}
+	mi := &file_env_v1_env_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OpenCallRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OpenCallRequest) ProtoMessage() {}
+
+func (x *OpenCallRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OpenCallRequest.ProtoReflect.Descriptor instead.
+func (*OpenCallRequest) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *OpenCallRequest) GetFrame() *CallFrame {
+	if x != nil {
+		return x.Frame
+	}
+	return nil
+}
+
+type OpenCallResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Frame         *CallFrame             `protobuf:"bytes,1,opt,name=frame,proto3" json:"frame,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OpenCallResponse) Reset() {
+	*x = OpenCallResponse{}
+	mi := &file_env_v1_env_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OpenCallResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OpenCallResponse) ProtoMessage() {}
+
+func (x *OpenCallResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OpenCallResponse.ProtoReflect.Descriptor instead.
+func (*OpenCallResponse) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *OpenCallResponse) GetFrame() *CallFrame {
+	if x != nil {
+		return x.Frame
+	}
+	return nil
+}
+
+type CallFrame struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Types that are valid to be assigned to Kind:
+	//
+	//	*CallFrame_Request
+	//	*CallFrame_Response
+	Kind          isCallFrame_Kind `protobuf_oneof:"kind"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CallFrame) Reset() {
+	*x = CallFrame{}
+	mi := &file_env_v1_env_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CallFrame) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CallFrame) ProtoMessage() {}
+
+func (x *CallFrame) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CallFrame.ProtoReflect.Descriptor instead.
+func (*CallFrame) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *CallFrame) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *CallFrame) GetKind() isCallFrame_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return nil
+}
+
+func (x *CallFrame) GetRequest() *CallRequest {
+	if x != nil {
+		if x, ok := x.Kind.(*CallFrame_Request); ok {
+			return x.Request
+		}
+	}
+	return nil
+}
+
+func (x *CallFrame) GetResponse() *CallResponse {
+	if x != nil {
+		if x, ok := x.Kind.(*CallFrame_Response); ok {
+			return x.Response
+		}
+	}
+	return nil
+}
+
+type isCallFrame_Kind interface {
+	isCallFrame_Kind()
+}
+
+type CallFrame_Request struct {
+	Request *CallRequest `protobuf:"bytes,2,opt,name=request,proto3,oneof"`
+}
+
+type CallFrame_Response struct {
+	Response *CallResponse `protobuf:"bytes,3,opt,name=response,proto3,oneof"`
+}
+
+func (*CallFrame_Request) isCallFrame_Kind() {}
+
+func (*CallFrame_Response) isCallFrame_Kind() {}
+
+type CallRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CallRequest) Reset() {
+	*x = CallRequest{}
+	mi := &file_env_v1_env_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CallRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CallRequest) ProtoMessage() {}
+
+func (x *CallRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CallRequest.ProtoReflect.Descriptor instead.
+func (*CallRequest) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{5}
+}
+
+type CallResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CallResponse) Reset() {
+	*x = CallResponse{}
+	mi := &file_env_v1_env_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CallResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CallResponse) ProtoMessage() {}
+
+func (x *CallResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CallResponse.ProtoReflect.Descriptor instead.
+func (*CallResponse) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{6}
+}
+
+type OpenStreamRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Frame         *StreamFrame           `protobuf:"bytes,1,opt,name=frame,proto3" json:"frame,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OpenStreamRequest) Reset() {
+	*x = OpenStreamRequest{}
+	mi := &file_env_v1_env_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OpenStreamRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OpenStreamRequest) ProtoMessage() {}
+
+func (x *OpenStreamRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OpenStreamRequest.ProtoReflect.Descriptor instead.
+func (*OpenStreamRequest) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *OpenStreamRequest) GetFrame() *StreamFrame {
+	if x != nil {
+		return x.Frame
+	}
+	return nil
+}
+
+type OpenStreamResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Frame         *StreamFrame           `protobuf:"bytes,1,opt,name=frame,proto3" json:"frame,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OpenStreamResponse) Reset() {
+	*x = OpenStreamResponse{}
+	mi := &file_env_v1_env_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OpenStreamResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OpenStreamResponse) ProtoMessage() {}
+
+func (x *OpenStreamResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OpenStreamResponse.ProtoReflect.Descriptor instead.
+func (*OpenStreamResponse) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *OpenStreamResponse) GetFrame() *StreamFrame {
+	if x != nil {
+		return x.Frame
+	}
+	return nil
+}
+
+type StreamFrame struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Types that are valid to be assigned to Kind:
+	//
+	//	*StreamFrame_Open
+	//	*StreamFrame_Chunk
+	//	*StreamFrame_End
+	Kind          isStreamFrame_Kind `protobuf_oneof:"kind"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamFrame) Reset() {
+	*x = StreamFrame{}
+	mi := &file_env_v1_env_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamFrame) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamFrame) ProtoMessage() {}
+
+func (x *StreamFrame) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamFrame.ProtoReflect.Descriptor instead.
+func (*StreamFrame) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *StreamFrame) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *StreamFrame) GetKind() isStreamFrame_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return nil
+}
+
+func (x *StreamFrame) GetOpen() *StreamOpen {
+	if x != nil {
+		if x, ok := x.Kind.(*StreamFrame_Open); ok {
+			return x.Open
+		}
+	}
+	return nil
+}
+
+func (x *StreamFrame) GetChunk() *StreamChunk {
+	if x != nil {
+		if x, ok := x.Kind.(*StreamFrame_Chunk); ok {
+			return x.Chunk
+		}
+	}
+	return nil
+}
+
+func (x *StreamFrame) GetEnd() *StreamEnd {
+	if x != nil {
+		if x, ok := x.Kind.(*StreamFrame_End); ok {
+			return x.End
+		}
+	}
+	return nil
+}
+
+type isStreamFrame_Kind interface {
+	isStreamFrame_Kind()
+}
+
+type StreamFrame_Open struct {
+	Open *StreamOpen `protobuf:"bytes,2,opt,name=open,proto3,oneof"`
+}
+
+type StreamFrame_Chunk struct {
+	Chunk *StreamChunk `protobuf:"bytes,3,opt,name=chunk,proto3,oneof"`
+}
+
+type StreamFrame_End struct {
+	End *StreamEnd `protobuf:"bytes,4,opt,name=end,proto3,oneof"`
+}
+
+func (*StreamFrame_Open) isStreamFrame_Kind() {}
+
+func (*StreamFrame_Chunk) isStreamFrame_Kind() {}
+
+func (*StreamFrame_End) isStreamFrame_Kind() {}
+
+type StreamOpen struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamOpen) Reset() {
+	*x = StreamOpen{}
+	mi := &file_env_v1_env_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamOpen) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamOpen) ProtoMessage() {}
+
+func (x *StreamOpen) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamOpen.ProtoReflect.Descriptor instead.
+func (*StreamOpen) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{10}
+}
+
+type StreamChunk struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []byte                 `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamChunk) Reset() {
+	*x = StreamChunk{}
+	mi := &file_env_v1_env_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamChunk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamChunk) ProtoMessage() {}
+
+func (x *StreamChunk) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamChunk.ProtoReflect.Descriptor instead.
+func (*StreamChunk) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *StreamChunk) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type StreamEnd struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamEnd) Reset() {
+	*x = StreamEnd{}
+	mi := &file_env_v1_env_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamEnd) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamEnd) ProtoMessage() {}
+
+func (x *StreamEnd) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamEnd.ProtoReflect.Descriptor instead.
+func (*StreamEnd) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{12}
+}
+
 var File_env_v1_env_proto protoreflect.FileDescriptor
 
 const file_env_v1_env_proto_rawDesc = "" +
@@ -135,9 +695,38 @@ const file_env_v1_env_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
 	"\bmetadata\x18\x03 \x01(\fR\bmetadata\"6\n" +
 	"\x0fConnectResponse\x12#\n" +
-	"\rsession_token\x18\x01 \x01(\tR\fsessionToken2\\\n" +
+	"\rsession_token\x18\x01 \x01(\tR\fsessionToken\"@\n" +
+	"\x0fOpenCallRequest\x12-\n" +
+	"\x05frame\x18\x01 \x01(\v2\x17.qrixr.env.v1.CallFrameR\x05frame\"A\n" +
+	"\x10OpenCallResponse\x12-\n" +
+	"\x05frame\x18\x01 \x01(\v2\x17.qrixr.env.v1.CallFrameR\x05frame\"\x94\x01\n" +
+	"\tCallFrame\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x125\n" +
+	"\arequest\x18\x02 \x01(\v2\x19.qrixr.env.v1.CallRequestH\x00R\arequest\x128\n" +
+	"\bresponse\x18\x03 \x01(\v2\x1a.qrixr.env.v1.CallResponseH\x00R\bresponseB\x06\n" +
+	"\x04kind\"\r\n" +
+	"\vCallRequest\"\x0e\n" +
+	"\fCallResponse\"D\n" +
+	"\x11OpenStreamRequest\x12/\n" +
+	"\x05frame\x18\x01 \x01(\v2\x19.qrixr.env.v1.StreamFrameR\x05frame\"E\n" +
+	"\x12OpenStreamResponse\x12/\n" +
+	"\x05frame\x18\x01 \x01(\v2\x19.qrixr.env.v1.StreamFrameR\x05frame\"\xb5\x01\n" +
+	"\vStreamFrame\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12.\n" +
+	"\x04open\x18\x02 \x01(\v2\x18.qrixr.env.v1.StreamOpenH\x00R\x04open\x121\n" +
+	"\x05chunk\x18\x03 \x01(\v2\x19.qrixr.env.v1.StreamChunkH\x00R\x05chunk\x12+\n" +
+	"\x03end\x18\x04 \x01(\v2\x17.qrixr.env.v1.StreamEndH\x00R\x03endB\x06\n" +
+	"\x04kind\"\f\n" +
+	"\n" +
+	"StreamOpen\"!\n" +
+	"\vStreamChunk\x12\x12\n" +
+	"\x04data\x18\x01 \x01(\fR\x04data\"\v\n" +
+	"\tStreamEnd2\x80\x02\n" +
 	"\x12EnvironmentService\x12F\n" +
-	"\aConnect\x12\x1c.qrixr.env.v1.ConnectRequest\x1a\x1d.qrixr.env.v1.ConnectResponseB\xa2\x01\n" +
+	"\aConnect\x12\x1c.qrixr.env.v1.ConnectRequest\x1a\x1d.qrixr.env.v1.ConnectResponse\x12M\n" +
+	"\bOpenCall\x12\x1d.qrixr.env.v1.OpenCallRequest\x1a\x1e.qrixr.env.v1.OpenCallResponse(\x010\x01\x12S\n" +
+	"\n" +
+	"OpenStream\x12\x1f.qrixr.env.v1.OpenStreamRequest\x1a .qrixr.env.v1.OpenStreamResponse(\x010\x01B\xa2\x01\n" +
 	"\x10com.qrixr.env.v1B\bEnvProtoP\x01Z2github.com/Skoowshot/qrix-runtime/gen/env/v1;envv1\xa2\x02\x03QEX\xaa\x02\fQrixr.Env.V1\xca\x02\fQrixr\\Env\\V1\xe2\x02\x18Qrixr\\Env\\V1\\GPBMetadata\xea\x02\x0eQrixr::Env::V1b\x06proto3"
 
 var (
@@ -152,19 +741,43 @@ func file_env_v1_env_proto_rawDescGZIP() []byte {
 	return file_env_v1_env_proto_rawDescData
 }
 
-var file_env_v1_env_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_env_v1_env_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_env_v1_env_proto_goTypes = []any{
-	(*ConnectRequest)(nil),  // 0: qrixr.env.v1.ConnectRequest
-	(*ConnectResponse)(nil), // 1: qrixr.env.v1.ConnectResponse
+	(*ConnectRequest)(nil),     // 0: qrixr.env.v1.ConnectRequest
+	(*ConnectResponse)(nil),    // 1: qrixr.env.v1.ConnectResponse
+	(*OpenCallRequest)(nil),    // 2: qrixr.env.v1.OpenCallRequest
+	(*OpenCallResponse)(nil),   // 3: qrixr.env.v1.OpenCallResponse
+	(*CallFrame)(nil),          // 4: qrixr.env.v1.CallFrame
+	(*CallRequest)(nil),        // 5: qrixr.env.v1.CallRequest
+	(*CallResponse)(nil),       // 6: qrixr.env.v1.CallResponse
+	(*OpenStreamRequest)(nil),  // 7: qrixr.env.v1.OpenStreamRequest
+	(*OpenStreamResponse)(nil), // 8: qrixr.env.v1.OpenStreamResponse
+	(*StreamFrame)(nil),        // 9: qrixr.env.v1.StreamFrame
+	(*StreamOpen)(nil),         // 10: qrixr.env.v1.StreamOpen
+	(*StreamChunk)(nil),        // 11: qrixr.env.v1.StreamChunk
+	(*StreamEnd)(nil),          // 12: qrixr.env.v1.StreamEnd
 }
 var file_env_v1_env_proto_depIdxs = []int32{
-	0, // 0: qrixr.env.v1.EnvironmentService.Connect:input_type -> qrixr.env.v1.ConnectRequest
-	1, // 1: qrixr.env.v1.EnvironmentService.Connect:output_type -> qrixr.env.v1.ConnectResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	4,  // 0: qrixr.env.v1.OpenCallRequest.frame:type_name -> qrixr.env.v1.CallFrame
+	4,  // 1: qrixr.env.v1.OpenCallResponse.frame:type_name -> qrixr.env.v1.CallFrame
+	5,  // 2: qrixr.env.v1.CallFrame.request:type_name -> qrixr.env.v1.CallRequest
+	6,  // 3: qrixr.env.v1.CallFrame.response:type_name -> qrixr.env.v1.CallResponse
+	9,  // 4: qrixr.env.v1.OpenStreamRequest.frame:type_name -> qrixr.env.v1.StreamFrame
+	9,  // 5: qrixr.env.v1.OpenStreamResponse.frame:type_name -> qrixr.env.v1.StreamFrame
+	10, // 6: qrixr.env.v1.StreamFrame.open:type_name -> qrixr.env.v1.StreamOpen
+	11, // 7: qrixr.env.v1.StreamFrame.chunk:type_name -> qrixr.env.v1.StreamChunk
+	12, // 8: qrixr.env.v1.StreamFrame.end:type_name -> qrixr.env.v1.StreamEnd
+	0,  // 9: qrixr.env.v1.EnvironmentService.Connect:input_type -> qrixr.env.v1.ConnectRequest
+	2,  // 10: qrixr.env.v1.EnvironmentService.OpenCall:input_type -> qrixr.env.v1.OpenCallRequest
+	7,  // 11: qrixr.env.v1.EnvironmentService.OpenStream:input_type -> qrixr.env.v1.OpenStreamRequest
+	1,  // 12: qrixr.env.v1.EnvironmentService.Connect:output_type -> qrixr.env.v1.ConnectResponse
+	3,  // 13: qrixr.env.v1.EnvironmentService.OpenCall:output_type -> qrixr.env.v1.OpenCallResponse
+	8,  // 14: qrixr.env.v1.EnvironmentService.OpenStream:output_type -> qrixr.env.v1.OpenStreamResponse
+	12, // [12:15] is the sub-list for method output_type
+	9,  // [9:12] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_env_v1_env_proto_init() }
@@ -172,13 +785,22 @@ func file_env_v1_env_proto_init() {
 	if File_env_v1_env_proto != nil {
 		return
 	}
+	file_env_v1_env_proto_msgTypes[4].OneofWrappers = []any{
+		(*CallFrame_Request)(nil),
+		(*CallFrame_Response)(nil),
+	}
+	file_env_v1_env_proto_msgTypes[9].OneofWrappers = []any{
+		(*StreamFrame_Open)(nil),
+		(*StreamFrame_Chunk)(nil),
+		(*StreamFrame_End)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_env_v1_env_proto_rawDesc), len(file_env_v1_env_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
