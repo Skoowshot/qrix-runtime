@@ -2,11 +2,16 @@ package grpchandler
 
 import (
 	"context"
+	"errors"
+	"io"
+	"sync"
 
 	envv1 "github.com/Skoowshot/qrix-runtime/gen/go/env/v1"
 	"github.com/Skoowshot/qrix-runtime/internal/app/service"
 	"github.com/Skoowshot/qrix-runtime/internal/env"
+	"github.com/Skoowshot/qrix-runtime/internal/rpc"
 	"github.com/Skoowshot/qrix-runtime/internal/workspace"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -45,4 +50,62 @@ func (e *Environment) Connect(ctx context.Context, req *envv1.ConnectRequest) (*
 	return &envv1.ConnectResponse{
 		SessionToken: string(token),
 	}, nil
+}
+
+func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallRequest, envv1.OpenCallResponse]) error {
+	var wg sync.WaitGroup
+
+	ctx, cancel := context.WithCancel(stream.Context())
+	defer cancel()
+
+	callSendCh := make(chan rpc.CallFrame) //todo get channel from service
+
+	wg.Go(func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case frame := <-callSendCh:
+				f := envv1.CallFrame{
+					Id:   uint64(frame.ID),
+					Kind: nil, //todo map kind
+				}
+				if err := stream.Send(&envv1.OpenCallResponse{Frame: &f}); err != nil {
+					cancel()
+					return
+				}
+			}
+		}
+	})
+
+	for {
+		req, err := stream.Recv()
+		if err != nil {
+			cancel()
+			wg.Wait()
+			if errors.Is(err, io.EOF) {
+				return nil
+			}
+			return err
+		}
+
+		frame := req.GetFrame()
+		switch frame.GetKind().(type) {
+		case *envv1.CallFrame_Request:
+			wg.Go(func() {
+				resp := rpc.CallFrame{
+					ID: rpc.ID(frame.Id),
+				} // todo handle request in service
+				select {
+				case callSendCh <- resp:
+				case <-ctx.Done():
+				}
+			})
+		case *envv1.CallFrame_Response:
+			//todo send response to service
+		}
+	}
+}
+func (e *Environment) OpenStream(stream grpc.BidiStreamingServer[envv1.OpenStreamRequest, envv1.OpenStreamResponse]) error {
+	return status.Error(codes.Unimplemented, "method OpenStream not implemented")
 }
