@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/Skoowshot/qrix-runtime/internal/rpc"
 )
 
 // SessionToken authenticates an Environment session.
@@ -27,12 +29,20 @@ func (s *Session) Close() error {
 	return nil
 }
 
-type pendingSession struct {
+type PendingSession struct {
 	ttlTimer *time.Timer
 	metadata Metadata
+
+	callIn  <-chan rpc.CallFrame
+	callOut chan rpc.CallFrame
 }
 
-func (s *pendingSession) Close() error {
+func (s *PendingSession) AttachCall(in <-chan rpc.CallFrame, out chan rpc.CallFrame) {
+	s.callIn = in
+	s.callOut = out
+}
+
+func (s *PendingSession) Close() error {
 	s.ttlTimer.Stop()
 	return nil
 }
@@ -41,7 +51,7 @@ func (s *pendingSession) Close() error {
 type SessionRegistry struct {
 	nextID uint64
 
-	pending    map[ID]*pendingSession
+	pending    map[ID]*PendingSession
 	pendingTTL time.Duration
 	active     map[ID]*Session
 
@@ -57,7 +67,7 @@ type SessionRegistry struct {
 // NewSessionRegistry creates a SessionRegistry whose pending sessions expire after pendingTTL.
 func NewSessionRegistry(pendingTTL time.Duration) *SessionRegistry {
 	return &SessionRegistry{
-		pending:    make(map[ID]*pendingSession),
+		pending:    make(map[ID]*PendingSession),
 		pendingTTL: pendingTTL,
 		active:     make(map[ID]*Session),
 
@@ -86,7 +96,7 @@ func (r *SessionRegistry) PutPending(name Name, token SessionToken, metadata Met
 
 	r.nextID++
 	id := ID(r.nextID)
-	ps := &pendingSession{
+	ps := &PendingSession{
 		ttlTimer: time.AfterFunc(r.pendingTTL, func() {
 			r.RemovePending(id)
 		}),
@@ -99,6 +109,15 @@ func (r *SessionRegistry) PutPending(name Name, token SessionToken, metadata Met
 	r.idToName[id] = name
 	r.idToToken[id] = token
 	return id, nil
+}
+
+// GetPending returns a pending session by the given ID.
+func (r *SessionRegistry) GetPending(id ID) (*PendingSession, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	p, ok := r.pending[id]
+	return p, ok
 }
 
 // RemovePending closes and removes a pending session and its indexes by ID.
@@ -117,6 +136,34 @@ func (r *SessionRegistry) RemovePending(id ID) {
 	_ = p.Close()
 	delete(r.pending, id)
 	r.deleteIndexes(id)
+}
+
+// GetByToken returns an ID by the given SessionToken.
+func (r *SessionRegistry) GetByToken(token SessionToken) (ID, bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	id, ok := r.tokenToID[token]
+	return id, ok
+}
+
+// AttachCall retrieves pending session by the given token, and attaches the call io channels.
+func (r *SessionRegistry) AttachCall(token SessionToken, in <-chan rpc.CallFrame, out chan rpc.CallFrame) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	id, ok := r.tokenToID[token]
+	if !ok {
+		return ErrSessionInvalid
+	}
+
+	sess, ok := r.pending[id]
+	if !ok {
+		return ErrSessionNotPending
+	}
+
+	sess.AttachCall(in, out)
+	return nil
 }
 
 // Close shuts down the registry, closing all pending and active sessions and joining any errors.
