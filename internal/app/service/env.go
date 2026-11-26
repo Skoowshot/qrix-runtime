@@ -37,19 +37,24 @@ func (e *Environment) Connect(ctx context.Context, wsID workspace.ID, name env.N
 	return token, nil
 }
 
-func (e *Environment) OpenCall(ctx context.Context, wsID workspace.ID, token env.SessionToken, in <-chan rpc.CallFrame) (<-chan rpc.CallFrame, error) {
+func (e *Environment) OpenCall(ctx context.Context, wsID workspace.ID, token env.SessionToken) (rpc.CallPipe, error) {
 	if err := ctx.Err(); err != nil {
-		return nil, err
+		return rpc.CallPipe{}, err
 	}
 
 	ws, ok := e.wsRepo.Get(wsID)
 	if !ok {
-		return nil, fmt.Errorf("%w: %d", workspace.ErrNotFound, wsID)
+		return rpc.CallPipe{}, fmt.Errorf("%w: %d", workspace.ErrNotFound, wsID)
 	}
 
+	in := make(chan rpc.CallFrame)
 	out := make(chan rpc.CallFrame)
 	if err := ws.Sessions.AttachCall(token, in, out); err != nil {
-		return nil, err
+		return rpc.CallPipe{}, err
 	}
-	return out, nil
+	pipe := rpc.CallPipe{
+		In:  in,
+		Out: out,
+	}
+	return pipe, nil
 }

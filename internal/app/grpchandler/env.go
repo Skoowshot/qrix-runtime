@@ -66,12 +66,11 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 	ctx, cancel := context.WithCancel(stream.Context())
 	defer cancel()
 
-	in := make(chan rpc.CallFrame)
-	defer close(in)
-	out, err := e.service.OpenCall(ctx, wsID, token, in)
+	pipe, err := e.service.OpenCall(ctx, wsID, token)
 	if err != nil {
 		return err
 	}
+	defer close(pipe.In)
 
 	// sender (out to grpc)
 	wg.Go(func() {
@@ -79,7 +78,7 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 			select {
 			case <-ctx.Done():
 				return
-			case frame, ok := <-out:
+			case frame, ok := <-pipe.Out:
 				if !ok {
 					cancel()
 					return
@@ -109,14 +108,15 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 			return err
 		}
 
-		frame := req.GetFrame()
+		frame := req.GetFrame() //todo check if nil
+
 		f := rpc.CallFrame{
 			ID: rpc.ID(frame.Id),
 			// todo map kind
 		}
 
 		select {
-		case in <- f:
+		case pipe.In <- f:
 		case <-ctx.Done():
 			wg.Wait()
 			return nil
