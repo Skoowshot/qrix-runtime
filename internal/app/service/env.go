@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Skoowshot/qrix-runtime/internal/env"
+	"github.com/Skoowshot/qrix-runtime/internal/rpc"
 	"github.com/Skoowshot/qrix-runtime/internal/workspace"
 )
 
@@ -19,8 +20,8 @@ func NewEnvironment(workspaceRepo *workspace.Registry) *Environment {
 }
 
 func (e *Environment) Connect(ctx context.Context, wsID workspace.ID, name env.Name, metadata env.Metadata) (env.SessionToken, error) {
-	if ctx.Err() != nil {
-		return "", ctx.Err()
+	if err := ctx.Err(); err != nil {
+		return "", err
 	}
 
 	ws, ok := e.wsRepo.Get(wsID)
@@ -34,4 +35,21 @@ func (e *Environment) Connect(ctx context.Context, wsID workspace.ID, name env.N
 	}
 
 	return token, nil
+}
+
+func (e *Environment) OpenCall(ctx context.Context, wsID workspace.ID, token env.SessionToken, in <-chan rpc.CallFrame) (<-chan rpc.CallFrame, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	ws, ok := e.wsRepo.Get(wsID)
+	if !ok {
+		return nil, fmt.Errorf("%w: %d", workspace.ErrNotFound, wsID)
+	}
+
+	out := make(chan rpc.CallFrame)
+	if err := ws.Sessions.AttachCall(token, in, out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
