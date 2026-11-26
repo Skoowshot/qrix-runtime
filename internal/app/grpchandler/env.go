@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	envv1 "github.com/Skoowshot/qrix-runtime/gen/go/env/v1"
+	"github.com/Skoowshot/qrix-runtime/internal/app/middleware"
 	"github.com/Skoowshot/qrix-runtime/internal/app/service"
 	"github.com/Skoowshot/qrix-runtime/internal/env"
 	"github.com/Skoowshot/qrix-runtime/internal/rpc"
@@ -55,17 +56,35 @@ func (e *Environment) Connect(ctx context.Context, req *envv1.ConnectRequest) (*
 func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallRequest, envv1.OpenCallResponse]) error {
 	var wg sync.WaitGroup
 
+	wsID, ok := middleware.WorkspaceFromContext(stream.Context())
+	if !ok {
+		return status.Error(codes.InvalidArgument, "missing workspace")
+	}
+
+	token, ok := env.SessionToken(""), true // todo header middleware
+
 	ctx, cancel := context.WithCancel(stream.Context())
 	defer cancel()
 
-	callSendCh := make(chan rpc.CallFrame) //todo get channel from service
+	in := make(chan rpc.CallFrame)
+	defer close(in)
+	out, err := e.service.OpenCall(ctx, wsID, token, in)
+	if err != nil {
+		return err
+	}
 
+	// sender (out to grpc)
 	wg.Go(func() {
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case frame := <-callSendCh:
+			case frame, ok := <-out:
+				if !ok {
+					cancel()
+					return
+				}
+
 				f := envv1.CallFrame{
 					Id:   uint64(frame.ID),
 					Kind: nil, //todo map kind
@@ -78,6 +97,7 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 		}
 	})
 
+	// receiver (grpc to in)
 	for {
 		req, err := stream.Recv()
 		if err != nil {
@@ -90,22 +110,20 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 		}
 
 		frame := req.GetFrame()
-		switch frame.GetKind().(type) {
-		case *envv1.CallFrame_Request:
-			wg.Go(func() {
-				resp := rpc.CallFrame{
-					ID: rpc.ID(frame.Id),
-				} // todo handle request in service
-				select {
-				case callSendCh <- resp:
-				case <-ctx.Done():
-				}
-			})
-		case *envv1.CallFrame_Response:
-			//todo send response to service
+		f := rpc.CallFrame{
+			ID: rpc.ID(frame.Id),
+			// todo map kind
+		}
+
+		select {
+		case in <- f:
+		case <-ctx.Done():
+			wg.Wait()
+			return nil
 		}
 	}
 }
+
 func (e *Environment) OpenStream(stream grpc.BidiStreamingServer[envv1.OpenStreamRequest, envv1.OpenStreamResponse]) error {
 	return status.Error(codes.Unimplemented, "method OpenStream not implemented")
 }
