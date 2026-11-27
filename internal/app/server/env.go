@@ -23,6 +23,8 @@ func ListenEnvironment(addr string, envService *service.Environment) (*Environme
 	}
 	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
 		middleware.Error(),
+	), grpc.ChainStreamInterceptor(
+		middleware.StreamSessionToken(),
 	))
 
 	envv1.RegisterEnvironmentServiceServer(grpcServer, grpchandler.NewEnvironment(envService))

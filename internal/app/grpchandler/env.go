@@ -63,7 +63,7 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 		return status.Error(codes.InvalidArgument, "missing workspace")
 	}
 
-	token, ok := env.SessionToken(""), true // todo header middleware
+	token, ok := middleware.SessionTokenFromContext(stream.Context())
 	if !ok {
 		return status.Error(codes.InvalidArgument, "missing session token")
 	}
