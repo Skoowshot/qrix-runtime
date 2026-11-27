@@ -84,11 +84,11 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 					return
 				}
 
-				f := envv1.CallFrame{
-					Id:   uint64(frame.ID),
-					Kind: nil, //todo map kind
+				f, err := mapRpcCallFrame(frame)
+				if err != nil {
+					// todo return err
 				}
-				if err := stream.Send(&envv1.OpenCallResponse{Frame: &f}); err != nil {
+				if err := stream.Send(&envv1.OpenCallResponse{Frame: f}); err != nil {
 					cancel()
 					return
 				}
@@ -108,11 +108,13 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 			return err
 		}
 
-		frame := req.GetFrame() //todo check if nil
-
-		f := rpc.CallFrame{
-			ID: rpc.ID(frame.Id),
-			// todo map kind
+		frame := req.GetFrame()
+		if frame == nil {
+			// todo return err
+		}
+		f, err := mapProtoCallFrame(frame)
+		if err != nil {
+			// todo return err
 		}
 
 		select {
@@ -126,4 +128,37 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 
 func (e *Environment) OpenStream(stream grpc.BidiStreamingServer[envv1.OpenStreamRequest, envv1.OpenStreamResponse]) error {
 	return status.Error(codes.Unimplemented, "method OpenStream not implemented")
+}
+
+func mapProtoCallFrame(frame *envv1.CallFrame) (rpc.CallFrame, error) {
+	f := rpc.CallFrame{
+		ID: rpc.ID(frame.Id),
+	}
+
+	switch frame.GetKind().(type) {
+	case *envv1.CallFrame_Request:
+		f.Kind = rpc.CallFrameRequest
+	case *envv1.CallFrame_Response:
+		f.Kind = rpc.CallFrameResponse
+	default:
+		return rpc.CallFrame{}, rpc.ErrUnknownCallFrameKind
+	}
+
+	return f, nil
+}
+
+func mapRpcCallFrame(frame rpc.CallFrame) (*envv1.CallFrame, error) {
+	f := &envv1.CallFrame{
+		Id: uint64(frame.ID),
+	}
+	switch frame.Kind {
+	case rpc.CallFrameRequest:
+		f.Kind = &envv1.CallFrame_Request{}
+	case rpc.CallFrameResponse:
+		f.Kind = &envv1.CallFrame_Response{}
+	default:
+		return nil, rpc.ErrUnknownCallFrameKind
+	}
+
+	return f, nil
 }
