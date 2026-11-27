@@ -220,6 +220,7 @@ type CallFrame struct {
 	//
 	//	*CallFrame_Request
 	//	*CallFrame_Response
+	//	*CallFrame_Fail
 	Kind          isCallFrame_Kind `protobuf_oneof:"kind"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -287,6 +288,15 @@ func (x *CallFrame) GetResponse() *CallResponse {
 	return nil
 }
 
+func (x *CallFrame) GetFail() *CallFail {
+	if x != nil {
+		if x, ok := x.Kind.(*CallFrame_Fail); ok {
+			return x.Fail
+		}
+	}
+	return nil
+}
+
 type isCallFrame_Kind interface {
 	isCallFrame_Kind()
 }
@@ -299,9 +309,15 @@ type CallFrame_Response struct {
 	Response *CallResponse `protobuf:"bytes,3,opt,name=response,proto3,oneof"`
 }
 
+type CallFrame_Fail struct {
+	Fail *CallFail `protobuf:"bytes,4,opt,name=fail,proto3,oneof"`
+}
+
 func (*CallFrame_Request) isCallFrame_Kind() {}
 
 func (*CallFrame_Response) isCallFrame_Kind() {}
+
+func (*CallFrame_Fail) isCallFrame_Kind() {}
 
 type CallRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -375,6 +391,50 @@ func (*CallResponse) Descriptor() ([]byte, []int) {
 	return file_env_v1_env_proto_rawDescGZIP(), []int{6}
 }
 
+type CallFail struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Error         *RpcError              `protobuf:"bytes,1,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CallFail) Reset() {
+	*x = CallFail{}
+	mi := &file_env_v1_env_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CallFail) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CallFail) ProtoMessage() {}
+
+func (x *CallFail) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CallFail.ProtoReflect.Descriptor instead.
+func (*CallFail) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CallFail) GetError() *RpcError {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
 type OpenStreamRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Frame         *StreamFrame           `protobuf:"bytes,1,opt,name=frame,proto3" json:"frame,omitempty"`
@@ -384,7 +444,7 @@ type OpenStreamRequest struct {
 
 func (x *OpenStreamRequest) Reset() {
 	*x = OpenStreamRequest{}
-	mi := &file_env_v1_env_proto_msgTypes[7]
+	mi := &file_env_v1_env_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -396,7 +456,7 @@ func (x *OpenStreamRequest) String() string {
 func (*OpenStreamRequest) ProtoMessage() {}
 
 func (x *OpenStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_env_v1_env_proto_msgTypes[7]
+	mi := &file_env_v1_env_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -409,7 +469,7 @@ func (x *OpenStreamRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpenStreamRequest.ProtoReflect.Descriptor instead.
 func (*OpenStreamRequest) Descriptor() ([]byte, []int) {
-	return file_env_v1_env_proto_rawDescGZIP(), []int{7}
+	return file_env_v1_env_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *OpenStreamRequest) GetFrame() *StreamFrame {
@@ -428,7 +488,7 @@ type OpenStreamResponse struct {
 
 func (x *OpenStreamResponse) Reset() {
 	*x = OpenStreamResponse{}
-	mi := &file_env_v1_env_proto_msgTypes[8]
+	mi := &file_env_v1_env_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -440,7 +500,7 @@ func (x *OpenStreamResponse) String() string {
 func (*OpenStreamResponse) ProtoMessage() {}
 
 func (x *OpenStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_env_v1_env_proto_msgTypes[8]
+	mi := &file_env_v1_env_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -453,7 +513,7 @@ func (x *OpenStreamResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpenStreamResponse.ProtoReflect.Descriptor instead.
 func (*OpenStreamResponse) Descriptor() ([]byte, []int) {
-	return file_env_v1_env_proto_rawDescGZIP(), []int{8}
+	return file_env_v1_env_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *OpenStreamResponse) GetFrame() *StreamFrame {
@@ -478,7 +538,7 @@ type StreamFrame struct {
 
 func (x *StreamFrame) Reset() {
 	*x = StreamFrame{}
-	mi := &file_env_v1_env_proto_msgTypes[9]
+	mi := &file_env_v1_env_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -490,7 +550,7 @@ func (x *StreamFrame) String() string {
 func (*StreamFrame) ProtoMessage() {}
 
 func (x *StreamFrame) ProtoReflect() protoreflect.Message {
-	mi := &file_env_v1_env_proto_msgTypes[9]
+	mi := &file_env_v1_env_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -503,7 +563,7 @@ func (x *StreamFrame) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamFrame.ProtoReflect.Descriptor instead.
 func (*StreamFrame) Descriptor() ([]byte, []int) {
-	return file_env_v1_env_proto_rawDescGZIP(), []int{9}
+	return file_env_v1_env_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *StreamFrame) GetId() uint64 {
@@ -577,7 +637,7 @@ type StreamOpen struct {
 
 func (x *StreamOpen) Reset() {
 	*x = StreamOpen{}
-	mi := &file_env_v1_env_proto_msgTypes[10]
+	mi := &file_env_v1_env_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -589,7 +649,7 @@ func (x *StreamOpen) String() string {
 func (*StreamOpen) ProtoMessage() {}
 
 func (x *StreamOpen) ProtoReflect() protoreflect.Message {
-	mi := &file_env_v1_env_proto_msgTypes[10]
+	mi := &file_env_v1_env_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -602,7 +662,7 @@ func (x *StreamOpen) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamOpen.ProtoReflect.Descriptor instead.
 func (*StreamOpen) Descriptor() ([]byte, []int) {
-	return file_env_v1_env_proto_rawDescGZIP(), []int{10}
+	return file_env_v1_env_proto_rawDescGZIP(), []int{11}
 }
 
 type StreamChunk struct {
@@ -614,7 +674,7 @@ type StreamChunk struct {
 
 func (x *StreamChunk) Reset() {
 	*x = StreamChunk{}
-	mi := &file_env_v1_env_proto_msgTypes[11]
+	mi := &file_env_v1_env_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -626,7 +686,7 @@ func (x *StreamChunk) String() string {
 func (*StreamChunk) ProtoMessage() {}
 
 func (x *StreamChunk) ProtoReflect() protoreflect.Message {
-	mi := &file_env_v1_env_proto_msgTypes[11]
+	mi := &file_env_v1_env_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -639,7 +699,7 @@ func (x *StreamChunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamChunk.ProtoReflect.Descriptor instead.
 func (*StreamChunk) Descriptor() ([]byte, []int) {
-	return file_env_v1_env_proto_rawDescGZIP(), []int{11}
+	return file_env_v1_env_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *StreamChunk) GetData() []byte {
@@ -657,7 +717,7 @@ type StreamEnd struct {
 
 func (x *StreamEnd) Reset() {
 	*x = StreamEnd{}
-	mi := &file_env_v1_env_proto_msgTypes[12]
+	mi := &file_env_v1_env_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -669,7 +729,7 @@ func (x *StreamEnd) String() string {
 func (*StreamEnd) ProtoMessage() {}
 
 func (x *StreamEnd) ProtoReflect() protoreflect.Message {
-	mi := &file_env_v1_env_proto_msgTypes[12]
+	mi := &file_env_v1_env_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -682,7 +742,59 @@ func (x *StreamEnd) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamEnd.ProtoReflect.Descriptor instead.
 func (*StreamEnd) Descriptor() ([]byte, []int) {
-	return file_env_v1_env_proto_rawDescGZIP(), []int{12}
+	return file_env_v1_env_proto_rawDescGZIP(), []int{13}
+}
+
+type RpcError struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          uint32                 `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RpcError) Reset() {
+	*x = RpcError{}
+	mi := &file_env_v1_env_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RpcError) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RpcError) ProtoMessage() {}
+
+func (x *RpcError) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RpcError.ProtoReflect.Descriptor instead.
+func (*RpcError) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *RpcError) GetCode() uint32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *RpcError) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
 }
 
 var File_env_v1_env_proto protoreflect.FileDescriptor
@@ -699,14 +811,17 @@ const file_env_v1_env_proto_rawDesc = "" +
 	"\x0fOpenCallRequest\x12-\n" +
 	"\x05frame\x18\x01 \x01(\v2\x17.qrixr.env.v1.CallFrameR\x05frame\"A\n" +
 	"\x10OpenCallResponse\x12-\n" +
-	"\x05frame\x18\x01 \x01(\v2\x17.qrixr.env.v1.CallFrameR\x05frame\"\x94\x01\n" +
+	"\x05frame\x18\x01 \x01(\v2\x17.qrixr.env.v1.CallFrameR\x05frame\"\xc2\x01\n" +
 	"\tCallFrame\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x125\n" +
 	"\arequest\x18\x02 \x01(\v2\x19.qrixr.env.v1.CallRequestH\x00R\arequest\x128\n" +
-	"\bresponse\x18\x03 \x01(\v2\x1a.qrixr.env.v1.CallResponseH\x00R\bresponseB\x06\n" +
+	"\bresponse\x18\x03 \x01(\v2\x1a.qrixr.env.v1.CallResponseH\x00R\bresponse\x12,\n" +
+	"\x04fail\x18\x04 \x01(\v2\x16.qrixr.env.v1.CallFailH\x00R\x04failB\x06\n" +
 	"\x04kind\"\r\n" +
 	"\vCallRequest\"\x0e\n" +
-	"\fCallResponse\"D\n" +
+	"\fCallResponse\"8\n" +
+	"\bCallFail\x12,\n" +
+	"\x05error\x18\x01 \x01(\v2\x16.qrixr.env.v1.RpcErrorR\x05error\"D\n" +
 	"\x11OpenStreamRequest\x12/\n" +
 	"\x05frame\x18\x01 \x01(\v2\x19.qrixr.env.v1.StreamFrameR\x05frame\"E\n" +
 	"\x12OpenStreamResponse\x12/\n" +
@@ -721,7 +836,10 @@ const file_env_v1_env_proto_rawDesc = "" +
 	"StreamOpen\"!\n" +
 	"\vStreamChunk\x12\x12\n" +
 	"\x04data\x18\x01 \x01(\fR\x04data\"\v\n" +
-	"\tStreamEnd2\x80\x02\n" +
+	"\tStreamEnd\"8\n" +
+	"\bRpcError\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\rR\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage2\x80\x02\n" +
 	"\x12EnvironmentService\x12F\n" +
 	"\aConnect\x12\x1c.qrixr.env.v1.ConnectRequest\x1a\x1d.qrixr.env.v1.ConnectResponse\x12M\n" +
 	"\bOpenCall\x12\x1d.qrixr.env.v1.OpenCallRequest\x1a\x1e.qrixr.env.v1.OpenCallResponse(\x010\x01\x12S\n" +
@@ -741,7 +859,7 @@ func file_env_v1_env_proto_rawDescGZIP() []byte {
 	return file_env_v1_env_proto_rawDescData
 }
 
-var file_env_v1_env_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_env_v1_env_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_env_v1_env_proto_goTypes = []any{
 	(*ConnectRequest)(nil),     // 0: qrixr.env.v1.ConnectRequest
 	(*ConnectResponse)(nil),    // 1: qrixr.env.v1.ConnectResponse
@@ -750,34 +868,38 @@ var file_env_v1_env_proto_goTypes = []any{
 	(*CallFrame)(nil),          // 4: qrixr.env.v1.CallFrame
 	(*CallRequest)(nil),        // 5: qrixr.env.v1.CallRequest
 	(*CallResponse)(nil),       // 6: qrixr.env.v1.CallResponse
-	(*OpenStreamRequest)(nil),  // 7: qrixr.env.v1.OpenStreamRequest
-	(*OpenStreamResponse)(nil), // 8: qrixr.env.v1.OpenStreamResponse
-	(*StreamFrame)(nil),        // 9: qrixr.env.v1.StreamFrame
-	(*StreamOpen)(nil),         // 10: qrixr.env.v1.StreamOpen
-	(*StreamChunk)(nil),        // 11: qrixr.env.v1.StreamChunk
-	(*StreamEnd)(nil),          // 12: qrixr.env.v1.StreamEnd
+	(*CallFail)(nil),           // 7: qrixr.env.v1.CallFail
+	(*OpenStreamRequest)(nil),  // 8: qrixr.env.v1.OpenStreamRequest
+	(*OpenStreamResponse)(nil), // 9: qrixr.env.v1.OpenStreamResponse
+	(*StreamFrame)(nil),        // 10: qrixr.env.v1.StreamFrame
+	(*StreamOpen)(nil),         // 11: qrixr.env.v1.StreamOpen
+	(*StreamChunk)(nil),        // 12: qrixr.env.v1.StreamChunk
+	(*StreamEnd)(nil),          // 13: qrixr.env.v1.StreamEnd
+	(*RpcError)(nil),           // 14: qrixr.env.v1.RpcError
 }
 var file_env_v1_env_proto_depIdxs = []int32{
 	4,  // 0: qrixr.env.v1.OpenCallRequest.frame:type_name -> qrixr.env.v1.CallFrame
 	4,  // 1: qrixr.env.v1.OpenCallResponse.frame:type_name -> qrixr.env.v1.CallFrame
 	5,  // 2: qrixr.env.v1.CallFrame.request:type_name -> qrixr.env.v1.CallRequest
 	6,  // 3: qrixr.env.v1.CallFrame.response:type_name -> qrixr.env.v1.CallResponse
-	9,  // 4: qrixr.env.v1.OpenStreamRequest.frame:type_name -> qrixr.env.v1.StreamFrame
-	9,  // 5: qrixr.env.v1.OpenStreamResponse.frame:type_name -> qrixr.env.v1.StreamFrame
-	10, // 6: qrixr.env.v1.StreamFrame.open:type_name -> qrixr.env.v1.StreamOpen
-	11, // 7: qrixr.env.v1.StreamFrame.chunk:type_name -> qrixr.env.v1.StreamChunk
-	12, // 8: qrixr.env.v1.StreamFrame.end:type_name -> qrixr.env.v1.StreamEnd
-	0,  // 9: qrixr.env.v1.EnvironmentService.Connect:input_type -> qrixr.env.v1.ConnectRequest
-	2,  // 10: qrixr.env.v1.EnvironmentService.OpenCall:input_type -> qrixr.env.v1.OpenCallRequest
-	7,  // 11: qrixr.env.v1.EnvironmentService.OpenStream:input_type -> qrixr.env.v1.OpenStreamRequest
-	1,  // 12: qrixr.env.v1.EnvironmentService.Connect:output_type -> qrixr.env.v1.ConnectResponse
-	3,  // 13: qrixr.env.v1.EnvironmentService.OpenCall:output_type -> qrixr.env.v1.OpenCallResponse
-	8,  // 14: qrixr.env.v1.EnvironmentService.OpenStream:output_type -> qrixr.env.v1.OpenStreamResponse
-	12, // [12:15] is the sub-list for method output_type
-	9,  // [9:12] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	7,  // 4: qrixr.env.v1.CallFrame.fail:type_name -> qrixr.env.v1.CallFail
+	14, // 5: qrixr.env.v1.CallFail.error:type_name -> qrixr.env.v1.RpcError
+	10, // 6: qrixr.env.v1.OpenStreamRequest.frame:type_name -> qrixr.env.v1.StreamFrame
+	10, // 7: qrixr.env.v1.OpenStreamResponse.frame:type_name -> qrixr.env.v1.StreamFrame
+	11, // 8: qrixr.env.v1.StreamFrame.open:type_name -> qrixr.env.v1.StreamOpen
+	12, // 9: qrixr.env.v1.StreamFrame.chunk:type_name -> qrixr.env.v1.StreamChunk
+	13, // 10: qrixr.env.v1.StreamFrame.end:type_name -> qrixr.env.v1.StreamEnd
+	0,  // 11: qrixr.env.v1.EnvironmentService.Connect:input_type -> qrixr.env.v1.ConnectRequest
+	2,  // 12: qrixr.env.v1.EnvironmentService.OpenCall:input_type -> qrixr.env.v1.OpenCallRequest
+	8,  // 13: qrixr.env.v1.EnvironmentService.OpenStream:input_type -> qrixr.env.v1.OpenStreamRequest
+	1,  // 14: qrixr.env.v1.EnvironmentService.Connect:output_type -> qrixr.env.v1.ConnectResponse
+	3,  // 15: qrixr.env.v1.EnvironmentService.OpenCall:output_type -> qrixr.env.v1.OpenCallResponse
+	9,  // 16: qrixr.env.v1.EnvironmentService.OpenStream:output_type -> qrixr.env.v1.OpenStreamResponse
+	14, // [14:17] is the sub-list for method output_type
+	11, // [11:14] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_env_v1_env_proto_init() }
@@ -788,8 +910,9 @@ func file_env_v1_env_proto_init() {
 	file_env_v1_env_proto_msgTypes[4].OneofWrappers = []any{
 		(*CallFrame_Request)(nil),
 		(*CallFrame_Response)(nil),
+		(*CallFrame_Fail)(nil),
 	}
-	file_env_v1_env_proto_msgTypes[9].OneofWrappers = []any{
+	file_env_v1_env_proto_msgTypes[10].OneofWrappers = []any{
 		(*StreamFrame_Open)(nil),
 		(*StreamFrame_Chunk)(nil),
 		(*StreamFrame_End)(nil),
@@ -800,7 +923,7 @@ func file_env_v1_env_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_env_v1_env_proto_rawDesc), len(file_env_v1_env_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
