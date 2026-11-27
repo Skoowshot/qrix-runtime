@@ -79,13 +79,11 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 	defer close(pipe.In)
 	defer wg.Wait()
 
-	// sender (out to grpc)
 	wg.Go(func() {
 		defer cancel()
 		sendCallFrames(ctx, pipe, stream)
 	})
 
-	// receiver (grpc to in)
 	defer cancel()
 	if err := receiveCallFrames(ctx, pipe, stream); err != nil {
 		return err
