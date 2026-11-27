@@ -3,7 +3,9 @@ package grpchandler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"log/slog"
 	"sync"
 
 	envv1 "github.com/Skoowshot/qrix-runtime/gen/go/env/v1"
@@ -62,34 +64,42 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 	}
 
 	token, ok := env.SessionToken(""), true // todo header middleware
+	if !ok {
+		return status.Error(codes.InvalidArgument, "missing session token")
+	}
 
 	ctx, cancel := context.WithCancel(stream.Context())
-	defer cancel()
 
 	pipe, err := e.service.OpenCall(ctx, wsID, token)
 	if err != nil {
+		cancel()
 		return err
 	}
+
 	defer close(pipe.In)
+	defer wg.Wait()
+	defer cancel()
 
 	// sender (out to grpc)
 	wg.Go(func() {
+		defer cancel()
+
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case frame, ok := <-pipe.Out:
 				if !ok {
-					cancel()
 					return
 				}
 
 				f, err := mapRpcCallFrame(frame)
 				if err != nil {
-					// todo return err
+					slog.ErrorContext(ctx, "failed to map outgoing call frame", "err", err)
+					return
 				}
 				if err := stream.Send(&envv1.OpenCallResponse{Frame: f}); err != nil {
-					cancel()
+					slog.ErrorContext(ctx, "failed to send response", "err", err)
 					return
 				}
 			}
@@ -100,8 +110,6 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 	for {
 		req, err := stream.Recv()
 		if err != nil {
-			cancel()
-			wg.Wait()
 			if errors.Is(err, io.EOF) {
 				return nil
 			}
@@ -109,18 +117,15 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 		}
 
 		frame := req.GetFrame()
-		if frame == nil {
-			// todo return err
-		}
+
 		f, err := mapProtoCallFrame(frame)
 		if err != nil {
-			// todo return err
+			return status.Errorf(codes.InvalidArgument, "invalid frame: %v", err)
 		}
 
 		select {
 		case pipe.In <- f:
 		case <-ctx.Done():
-			wg.Wait()
 			return nil
 		}
 	}
@@ -131,20 +136,27 @@ func (e *Environment) OpenStream(stream grpc.BidiStreamingServer[envv1.OpenStrea
 }
 
 func mapProtoCallFrame(frame *envv1.CallFrame) (rpc.CallFrame, error) {
-	f := rpc.CallFrame{
-		ID: rpc.ID(frame.Id),
+	if frame == nil {
+		return rpc.CallFrame{}, fmt.Errorf("missing frame")
 	}
 
-	switch frame.GetKind().(type) {
+	id := rpc.ID(frame.Id)
+
+	switch k := frame.GetKind().(type) {
 	case *envv1.CallFrame_Request:
-		f.Kind = rpc.CallFrameRequest
+		return rpc.NewCallFrameRequest(id), nil
 	case *envv1.CallFrame_Response:
-		f.Kind = rpc.CallFrameResponse
+		return rpc.NewCallFrameResponse(id), nil
+	case *envv1.CallFrame_Fail:
+		fail := k.Fail
+		rpcErr, err := mapProtoRpcError(fail.GetError())
+		if err != nil {
+			return rpc.CallFrame{}, err
+		}
+		return rpc.NewCallFrameFail(id, rpcErr), nil
 	default:
-		return rpc.CallFrame{}, rpc.ErrUnknownCallFrameKind
+		return rpc.CallFrame{}, fmt.Errorf("unknown frame kind")
 	}
-
-	return f, nil
 }
 
 func mapRpcCallFrame(frame rpc.CallFrame) (*envv1.CallFrame, error) {
@@ -153,12 +165,41 @@ func mapRpcCallFrame(frame rpc.CallFrame) (*envv1.CallFrame, error) {
 	}
 	switch frame.Kind {
 	case rpc.CallFrameRequest:
-		f.Kind = &envv1.CallFrame_Request{}
+		f.Kind = &envv1.CallFrame_Request{Request: &envv1.CallRequest{}}
 	case rpc.CallFrameResponse:
-		f.Kind = &envv1.CallFrame_Response{}
+		f.Kind = &envv1.CallFrame_Response{Response: &envv1.CallResponse{}}
+	case rpc.CallFrameFail:
+		rpcErr, err := mapRpcError(frame.Error())
+		if err != nil {
+			return nil, err
+		}
+
+		f.Kind = &envv1.CallFrame_Fail{Fail: &envv1.CallFail{
+			Error: rpcErr,
+		}}
 	default:
-		return nil, rpc.ErrUnknownCallFrameKind
+		return nil, fmt.Errorf("unknown frame kind")
 	}
 
 	return f, nil
+}
+
+func mapProtoRpcError(rpcErr *envv1.RpcError) (rpc.Error, error) {
+	if rpcErr == nil {
+		return rpc.Error{}, fmt.Errorf("missing error")
+	}
+	return rpc.Error{
+		Code:    rpc.Code(rpcErr.Code),
+		Message: rpcErr.Message,
+	}, nil
+}
+
+func mapRpcError(rpcErr *rpc.Error) (*envv1.RpcError, error) {
+	if rpcErr == nil {
+		return nil, fmt.Errorf("missing error")
+	}
+	return &envv1.RpcError{
+		Code:    uint32(rpcErr.Code),
+		Message: rpcErr.Message,
+	}, nil
 }
