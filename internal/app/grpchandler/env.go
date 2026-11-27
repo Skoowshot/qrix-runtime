@@ -78,35 +78,49 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 
 	defer close(pipe.In)
 	defer wg.Wait()
-	defer cancel()
 
 	// sender (out to grpc)
 	wg.Go(func() {
 		defer cancel()
-
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case frame, ok := <-pipe.Out:
-				if !ok {
-					return
-				}
-
-				f, err := mapRpcCallFrame(frame)
-				if err != nil {
-					slog.ErrorContext(ctx, "failed to map outgoing call frame", "err", err)
-					return
-				}
-				if err := stream.Send(&envv1.OpenCallResponse{Frame: f}); err != nil {
-					slog.ErrorContext(ctx, "failed to send response", "err", err)
-					return
-				}
-			}
-		}
+		sendCallFrames(ctx, pipe, stream)
 	})
 
 	// receiver (grpc to in)
+	defer cancel()
+	if err := receiveCallFrames(ctx, pipe, stream); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *Environment) OpenStream(stream grpc.BidiStreamingServer[envv1.OpenStreamRequest, envv1.OpenStreamResponse]) error {
+	return status.Error(codes.Unimplemented, "method OpenStream not implemented")
+}
+
+func sendCallFrames(ctx context.Context, pipe rpc.CallPipe, stream grpc.BidiStreamingServer[envv1.OpenCallRequest, envv1.OpenCallResponse]) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case frame, ok := <-pipe.Out:
+			if !ok {
+				return
+			}
+
+			f, err := mapRpcCallFrame(frame)
+			if err != nil {
+				slog.ErrorContext(ctx, "failed to map outgoing call frame", "err", err)
+				return
+			}
+			if err := stream.Send(&envv1.OpenCallResponse{Frame: f}); err != nil {
+				slog.ErrorContext(ctx, "failed to send response", "err", err)
+				return
+			}
+		}
+	}
+}
+
+func receiveCallFrames(ctx context.Context, pipe rpc.CallPipe, stream grpc.BidiStreamingServer[envv1.OpenCallRequest, envv1.OpenCallResponse]) error {
 	for {
 		req, err := stream.Recv()
 		if err != nil {
@@ -129,10 +143,6 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 			return nil
 		}
 	}
-}
-
-func (e *Environment) OpenStream(stream grpc.BidiStreamingServer[envv1.OpenStreamRequest, envv1.OpenStreamResponse]) error {
-	return status.Error(codes.Unimplemented, "method OpenStream not implemented")
 }
 
 func mapProtoCallFrame(frame *envv1.CallFrame) (rpc.CallFrame, error) {
