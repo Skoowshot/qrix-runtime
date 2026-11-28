@@ -528,9 +528,10 @@ type StreamFrame struct {
 	Id    uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	// Types that are valid to be assigned to Kind:
 	//
-	//	*StreamFrame_Open
+	//	*StreamFrame_Start
 	//	*StreamFrame_Chunk
 	//	*StreamFrame_End
+	//	*StreamFrame_Fail
 	Kind          isStreamFrame_Kind `protobuf_oneof:"kind"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -580,10 +581,10 @@ func (x *StreamFrame) GetKind() isStreamFrame_Kind {
 	return nil
 }
 
-func (x *StreamFrame) GetOpen() *StreamOpen {
+func (x *StreamFrame) GetStart() *StreamStart {
 	if x != nil {
-		if x, ok := x.Kind.(*StreamFrame_Open); ok {
-			return x.Open
+		if x, ok := x.Kind.(*StreamFrame_Start); ok {
+			return x.Start
 		}
 	}
 	return nil
@@ -607,12 +608,21 @@ func (x *StreamFrame) GetEnd() *StreamEnd {
 	return nil
 }
 
+func (x *StreamFrame) GetFail() *StreamFail {
+	if x != nil {
+		if x, ok := x.Kind.(*StreamFrame_Fail); ok {
+			return x.Fail
+		}
+	}
+	return nil
+}
+
 type isStreamFrame_Kind interface {
 	isStreamFrame_Kind()
 }
 
-type StreamFrame_Open struct {
-	Open *StreamOpen `protobuf:"bytes,2,opt,name=open,proto3,oneof"`
+type StreamFrame_Start struct {
+	Start *StreamStart `protobuf:"bytes,2,opt,name=start,proto3,oneof"`
 }
 
 type StreamFrame_Chunk struct {
@@ -623,32 +633,38 @@ type StreamFrame_End struct {
 	End *StreamEnd `protobuf:"bytes,4,opt,name=end,proto3,oneof"`
 }
 
-func (*StreamFrame_Open) isStreamFrame_Kind() {}
+type StreamFrame_Fail struct {
+	Fail *StreamFail `protobuf:"bytes,5,opt,name=fail,proto3,oneof"`
+}
+
+func (*StreamFrame_Start) isStreamFrame_Kind() {}
 
 func (*StreamFrame_Chunk) isStreamFrame_Kind() {}
 
 func (*StreamFrame_End) isStreamFrame_Kind() {}
 
-type StreamOpen struct {
+func (*StreamFrame_Fail) isStreamFrame_Kind() {}
+
+type StreamStart struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StreamOpen) Reset() {
-	*x = StreamOpen{}
+func (x *StreamStart) Reset() {
+	*x = StreamStart{}
 	mi := &file_env_v1_env_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StreamOpen) String() string {
+func (x *StreamStart) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StreamOpen) ProtoMessage() {}
+func (*StreamStart) ProtoMessage() {}
 
-func (x *StreamOpen) ProtoReflect() protoreflect.Message {
+func (x *StreamStart) ProtoReflect() protoreflect.Message {
 	mi := &file_env_v1_env_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -660,8 +676,8 @@ func (x *StreamOpen) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StreamOpen.ProtoReflect.Descriptor instead.
-func (*StreamOpen) Descriptor() ([]byte, []int) {
+// Deprecated: Use StreamStart.ProtoReflect.Descriptor instead.
+func (*StreamStart) Descriptor() ([]byte, []int) {
 	return file_env_v1_env_proto_rawDescGZIP(), []int{11}
 }
 
@@ -745,6 +761,50 @@ func (*StreamEnd) Descriptor() ([]byte, []int) {
 	return file_env_v1_env_proto_rawDescGZIP(), []int{13}
 }
 
+type StreamFail struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Error         *RpcError              `protobuf:"bytes,1,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamFail) Reset() {
+	*x = StreamFail{}
+	mi := &file_env_v1_env_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamFail) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamFail) ProtoMessage() {}
+
+func (x *StreamFail) ProtoReflect() protoreflect.Message {
+	mi := &file_env_v1_env_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamFail.ProtoReflect.Descriptor instead.
+func (*StreamFail) Descriptor() ([]byte, []int) {
+	return file_env_v1_env_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *StreamFail) GetError() *RpcError {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
 type RpcError struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          uint32                 `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
@@ -755,7 +815,7 @@ type RpcError struct {
 
 func (x *RpcError) Reset() {
 	*x = RpcError{}
-	mi := &file_env_v1_env_proto_msgTypes[14]
+	mi := &file_env_v1_env_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -767,7 +827,7 @@ func (x *RpcError) String() string {
 func (*RpcError) ProtoMessage() {}
 
 func (x *RpcError) ProtoReflect() protoreflect.Message {
-	mi := &file_env_v1_env_proto_msgTypes[14]
+	mi := &file_env_v1_env_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -780,7 +840,7 @@ func (x *RpcError) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RpcError.ProtoReflect.Descriptor instead.
 func (*RpcError) Descriptor() ([]byte, []int) {
-	return file_env_v1_env_proto_rawDescGZIP(), []int{14}
+	return file_env_v1_env_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *RpcError) GetCode() uint32 {
@@ -825,18 +885,21 @@ const file_env_v1_env_proto_rawDesc = "" +
 	"\x11OpenStreamRequest\x12/\n" +
 	"\x05frame\x18\x01 \x01(\v2\x19.qrixr.env.v1.StreamFrameR\x05frame\"E\n" +
 	"\x12OpenStreamResponse\x12/\n" +
-	"\x05frame\x18\x01 \x01(\v2\x19.qrixr.env.v1.StreamFrameR\x05frame\"\xb5\x01\n" +
+	"\x05frame\x18\x01 \x01(\v2\x19.qrixr.env.v1.StreamFrameR\x05frame\"\xe8\x01\n" +
 	"\vStreamFrame\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x04R\x02id\x12.\n" +
-	"\x04open\x18\x02 \x01(\v2\x18.qrixr.env.v1.StreamOpenH\x00R\x04open\x121\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x121\n" +
+	"\x05start\x18\x02 \x01(\v2\x19.qrixr.env.v1.StreamStartH\x00R\x05start\x121\n" +
 	"\x05chunk\x18\x03 \x01(\v2\x19.qrixr.env.v1.StreamChunkH\x00R\x05chunk\x12+\n" +
-	"\x03end\x18\x04 \x01(\v2\x17.qrixr.env.v1.StreamEndH\x00R\x03endB\x06\n" +
-	"\x04kind\"\f\n" +
-	"\n" +
-	"StreamOpen\"!\n" +
+	"\x03end\x18\x04 \x01(\v2\x17.qrixr.env.v1.StreamEndH\x00R\x03end\x12.\n" +
+	"\x04fail\x18\x05 \x01(\v2\x18.qrixr.env.v1.StreamFailH\x00R\x04failB\x06\n" +
+	"\x04kind\"\r\n" +
+	"\vStreamStart\"!\n" +
 	"\vStreamChunk\x12\x12\n" +
 	"\x04data\x18\x01 \x01(\fR\x04data\"\v\n" +
-	"\tStreamEnd\"8\n" +
+	"\tStreamEnd\":\n" +
+	"\n" +
+	"StreamFail\x12,\n" +
+	"\x05error\x18\x01 \x01(\v2\x16.qrixr.env.v1.RpcErrorR\x05error\"8\n" +
 	"\bRpcError\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\rR\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage2\x80\x02\n" +
@@ -859,7 +922,7 @@ func file_env_v1_env_proto_rawDescGZIP() []byte {
 	return file_env_v1_env_proto_rawDescData
 }
 
-var file_env_v1_env_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_env_v1_env_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_env_v1_env_proto_goTypes = []any{
 	(*ConnectRequest)(nil),     // 0: qrixr.env.v1.ConnectRequest
 	(*ConnectResponse)(nil),    // 1: qrixr.env.v1.ConnectResponse
@@ -872,10 +935,11 @@ var file_env_v1_env_proto_goTypes = []any{
 	(*OpenStreamRequest)(nil),  // 8: qrixr.env.v1.OpenStreamRequest
 	(*OpenStreamResponse)(nil), // 9: qrixr.env.v1.OpenStreamResponse
 	(*StreamFrame)(nil),        // 10: qrixr.env.v1.StreamFrame
-	(*StreamOpen)(nil),         // 11: qrixr.env.v1.StreamOpen
+	(*StreamStart)(nil),        // 11: qrixr.env.v1.StreamStart
 	(*StreamChunk)(nil),        // 12: qrixr.env.v1.StreamChunk
 	(*StreamEnd)(nil),          // 13: qrixr.env.v1.StreamEnd
-	(*RpcError)(nil),           // 14: qrixr.env.v1.RpcError
+	(*StreamFail)(nil),         // 14: qrixr.env.v1.StreamFail
+	(*RpcError)(nil),           // 15: qrixr.env.v1.RpcError
 }
 var file_env_v1_env_proto_depIdxs = []int32{
 	4,  // 0: qrixr.env.v1.OpenCallRequest.frame:type_name -> qrixr.env.v1.CallFrame
@@ -883,23 +947,25 @@ var file_env_v1_env_proto_depIdxs = []int32{
 	5,  // 2: qrixr.env.v1.CallFrame.request:type_name -> qrixr.env.v1.CallRequest
 	6,  // 3: qrixr.env.v1.CallFrame.response:type_name -> qrixr.env.v1.CallResponse
 	7,  // 4: qrixr.env.v1.CallFrame.fail:type_name -> qrixr.env.v1.CallFail
-	14, // 5: qrixr.env.v1.CallFail.error:type_name -> qrixr.env.v1.RpcError
+	15, // 5: qrixr.env.v1.CallFail.error:type_name -> qrixr.env.v1.RpcError
 	10, // 6: qrixr.env.v1.OpenStreamRequest.frame:type_name -> qrixr.env.v1.StreamFrame
 	10, // 7: qrixr.env.v1.OpenStreamResponse.frame:type_name -> qrixr.env.v1.StreamFrame
-	11, // 8: qrixr.env.v1.StreamFrame.open:type_name -> qrixr.env.v1.StreamOpen
+	11, // 8: qrixr.env.v1.StreamFrame.start:type_name -> qrixr.env.v1.StreamStart
 	12, // 9: qrixr.env.v1.StreamFrame.chunk:type_name -> qrixr.env.v1.StreamChunk
 	13, // 10: qrixr.env.v1.StreamFrame.end:type_name -> qrixr.env.v1.StreamEnd
-	0,  // 11: qrixr.env.v1.EnvironmentService.Connect:input_type -> qrixr.env.v1.ConnectRequest
-	2,  // 12: qrixr.env.v1.EnvironmentService.OpenCall:input_type -> qrixr.env.v1.OpenCallRequest
-	8,  // 13: qrixr.env.v1.EnvironmentService.OpenStream:input_type -> qrixr.env.v1.OpenStreamRequest
-	1,  // 14: qrixr.env.v1.EnvironmentService.Connect:output_type -> qrixr.env.v1.ConnectResponse
-	3,  // 15: qrixr.env.v1.EnvironmentService.OpenCall:output_type -> qrixr.env.v1.OpenCallResponse
-	9,  // 16: qrixr.env.v1.EnvironmentService.OpenStream:output_type -> qrixr.env.v1.OpenStreamResponse
-	14, // [14:17] is the sub-list for method output_type
-	11, // [11:14] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	14, // 11: qrixr.env.v1.StreamFrame.fail:type_name -> qrixr.env.v1.StreamFail
+	15, // 12: qrixr.env.v1.StreamFail.error:type_name -> qrixr.env.v1.RpcError
+	0,  // 13: qrixr.env.v1.EnvironmentService.Connect:input_type -> qrixr.env.v1.ConnectRequest
+	2,  // 14: qrixr.env.v1.EnvironmentService.OpenCall:input_type -> qrixr.env.v1.OpenCallRequest
+	8,  // 15: qrixr.env.v1.EnvironmentService.OpenStream:input_type -> qrixr.env.v1.OpenStreamRequest
+	1,  // 16: qrixr.env.v1.EnvironmentService.Connect:output_type -> qrixr.env.v1.ConnectResponse
+	3,  // 17: qrixr.env.v1.EnvironmentService.OpenCall:output_type -> qrixr.env.v1.OpenCallResponse
+	9,  // 18: qrixr.env.v1.EnvironmentService.OpenStream:output_type -> qrixr.env.v1.OpenStreamResponse
+	16, // [16:19] is the sub-list for method output_type
+	13, // [13:16] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_env_v1_env_proto_init() }
@@ -913,9 +979,10 @@ func file_env_v1_env_proto_init() {
 		(*CallFrame_Fail)(nil),
 	}
 	file_env_v1_env_proto_msgTypes[10].OneofWrappers = []any{
-		(*StreamFrame_Open)(nil),
+		(*StreamFrame_Start)(nil),
 		(*StreamFrame_Chunk)(nil),
 		(*StreamFrame_End)(nil),
+		(*StreamFrame_Fail)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -923,7 +990,7 @@ func file_env_v1_env_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_env_v1_env_proto_rawDesc), len(file_env_v1_env_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   15,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
