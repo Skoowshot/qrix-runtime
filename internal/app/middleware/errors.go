@@ -48,7 +48,8 @@ func mapError(ctx context.Context, method string, err error) error {
 		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, plugin.ErrSlotAlreadyExists),
 		errors.Is(err, workspace.ErrNameAlreadyExists),
-		errors.Is(err, plugin.ErrNameAlreadyExists):
+		errors.Is(err, plugin.ErrNameAlreadyExists),
+		errors.Is(err, env.ErrNameAlreadyExists):
 		return status.Error(codes.AlreadyExists, err.Error())
 	case errors.Is(err, env.ErrSessionInvalid):
 		return status.Error(codes.Unauthenticated, err.Error())
