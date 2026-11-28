@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/Skoowshot/qrix-runtime/internal/workspace"
 )
@@ -41,7 +42,7 @@ func TestService_Create(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc := NewWorkspace(workspace.NewRegistry())
+			svc := NewWorkspace(15*time.Second, workspace.NewRegistry())
 			if tt.setup != nil {
 				tt.setup(t, svc)
 			}
@@ -90,7 +91,7 @@ func TestService_GetByName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc := NewWorkspace(workspace.NewRegistry())
+			svc := NewWorkspace(15*time.Second, workspace.NewRegistry())
 			if tt.setup != nil {
 				tt.setup(t, svc)
 			}

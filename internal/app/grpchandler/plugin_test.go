@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"testing"
+	"time"
 
 	pluginv1 "github.com/Skoowshot/qrix-runtime/gen/go/plugin/v1"
 	"github.com/Skoowshot/qrix-runtime/internal/app/middleware"
@@ -363,7 +364,7 @@ func ctxWithWorkspace(wsID workspace.ID) context.Context {
 
 func mustCreateGRPCWorkspace(t *testing.T, wsRepo *workspace.Registry, name workspace.Name) workspace.ID {
 	t.Helper()
-	id, err := wsRepo.Put(name, workspace.NewWorkspace())
+	id, err := wsRepo.Put(name, workspace.NewWorkspace(15*time.Second))
 	if err != nil {
 		t.Fatalf("failed to create workspace %q: %v", name, err)
 	}

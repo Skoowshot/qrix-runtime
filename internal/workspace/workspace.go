@@ -6,7 +6,9 @@ import (
 	"maps"
 	"slices"
 	"sync"
+	"time"
 
+	"github.com/Skoowshot/qrix-runtime/internal/env"
 	"github.com/Skoowshot/qrix-runtime/internal/network"
 	"github.com/Skoowshot/qrix-runtime/internal/plugin"
 )
@@ -19,6 +21,8 @@ type Name string
 
 // Workspace is an isolated self-contained unit holding application state.
 type Workspace struct {
+	Sessions *env.SessionRegistry
+
 	slots   map[plugin.ID]*plugin.Slot
 	network *network.Network
 
@@ -26,9 +30,10 @@ type Workspace struct {
 }
 
 // NewWorkspace creates a Workspace.
-func NewWorkspace() *Workspace {
+func NewWorkspace(sessionTTL time.Duration) *Workspace {
 	return &Workspace{
-		slots: make(map[plugin.ID]*plugin.Slot),
+		slots:    make(map[plugin.ID]*plugin.Slot),
+		Sessions: env.NewSessionRegistry(sessionTTL),
 	}
 }
 
@@ -87,18 +92,33 @@ func (w *Workspace) RemoveSlot(id plugin.ID) *plugin.Slot {
 	return slot
 }
 
-// Close disposes all plugin slots and joins any returned errors.
+// Close disposes all sessions and plugin slots and joins any returned errors.
 func (w *Workspace) Close() error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	errs := make([]error, 0, len(w.slots))
+	var errs []error
+	if w.Sessions != nil {
+		if err := w.Sessions.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if w.slots != nil {
+		if err := w.closeSlots(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return errors.Join(errs...)
+}
+
+func (w *Workspace) closeSlots() error {
+	var errs []error
 	for _, v := range w.slots {
 		if err := v.Close(); err != nil {
 			errs = append(errs, err)
 		}
 	}
-
 	w.slots = nil
 	return errors.Join(errs...)
 }

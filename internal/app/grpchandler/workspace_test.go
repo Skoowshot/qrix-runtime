@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"testing"
+	"time"
 
 	workspacev1 "github.com/Skoowshot/qrix-runtime/gen/go/workspace/v1"
 	"github.com/Skoowshot/qrix-runtime/internal/app/service"
@@ -99,7 +100,7 @@ func setupClient(t *testing.T) workspacev1.WorkspaceServiceClient {
 	lis := bufconn.Listen(1024 * 1024)
 	srv := grpc.NewServer()
 
-	wsSvc := service.NewWorkspace(workspace.NewRegistry())
+	wsSvc := service.NewWorkspace(15*time.Second, workspace.NewRegistry())
 	workspacev1.RegisterWorkspaceServiceServer(srv, NewWorkspace(wsSvc))
 
 	go func() { _ = srv.Serve(lis) }()

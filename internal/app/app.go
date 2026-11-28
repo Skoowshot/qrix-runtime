@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+	"time"
 
 	"github.com/Skoowshot/qrix-runtime/internal/app/server"
 	"github.com/Skoowshot/qrix-runtime/internal/app/service"
@@ -26,17 +27,24 @@ func (app *App) Start() error {
 	wsRegistry := workspace.NewRegistry()
 	plgRegistry := plugin.NewRegistry()
 
-	wsService := service.NewWorkspace(wsRegistry)
+	wsService := service.NewWorkspace(15*time.Second, wsRegistry)
 	plgService := service.NewPlugin(plgRegistry, wsRegistry)
+	envService := service.NewEnvironment(wsRegistry)
 
 	ctrlServer, err := server.ListenControl(":7178", wsService, plgService)
 	if err != nil {
 		return fmt.Errorf("create control server: %w", err)
 	}
 
+	envServer, err := server.ListenEnvironment(":7179", envService)
+	if err != nil {
+		return fmt.Errorf("create environment server: %w", err)
+	}
+
 	app.servers = append(
 		app.servers,
 		ctrlServer,
+		envServer,
 	)
 
 	for _, s := range app.servers {

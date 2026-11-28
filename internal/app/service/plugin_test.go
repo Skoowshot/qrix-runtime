@@ -6,6 +6,7 @@ import (
 	"slices"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/Skoowshot/qrix-runtime/internal/plugin"
 	"github.com/Skoowshot/qrix-runtime/internal/workspace"
@@ -412,7 +413,7 @@ func (s *stubCloser) Close() error {
 
 func mustCreateWorkspace(t *testing.T, wsRepo *workspace.Registry, name workspace.Name) workspace.ID {
 	t.Helper()
-	id, err := wsRepo.Put(name, workspace.NewWorkspace())
+	id, err := wsRepo.Put(name, workspace.NewWorkspace(15*time.Second))
 	if err != nil {
 		t.Fatalf("failed to create workspace %q: %v", name, err)
 	}
