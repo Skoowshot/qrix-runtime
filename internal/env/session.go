@@ -50,7 +50,7 @@ func (s *PendingSession) AttachStream(in <-chan rpc.StreamFrame, out chan rpc.St
 }
 
 func (s *PendingSession) Close() error {
-	s.ttlTimer.Stop()
+	s.ttlTimer.Stop() //todo: add cancellation signal
 	return nil
 }
 
