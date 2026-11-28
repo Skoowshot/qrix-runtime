@@ -54,6 +54,17 @@ func (s *PendingSession) Close() error {
 	return nil
 }
 
+func (s *PendingSession) tryCompleteConnection() {
+	if s.callIn == nil || s.callOut == nil {
+		return
+	}
+	if s.streamIn == nil || s.streamOut == nil {
+		return
+	}
+	s.ttlTimer.Stop()
+	//todo: put a session and remove this pending session in registry
+}
+
 // SessionRegistry tracks pending and active Environment sessions with name and token indexes.
 type SessionRegistry struct {
 	nextID uint64
