@@ -92,7 +92,39 @@ func (e *Environment) OpenCall(stream grpc.BidiStreamingServer[envv1.OpenCallReq
 }
 
 func (e *Environment) OpenStream(stream grpc.BidiStreamingServer[envv1.OpenStreamRequest, envv1.OpenStreamResponse]) error {
-	return status.Error(codes.Unimplemented, "method OpenStream not implemented")
+	var wg sync.WaitGroup
+
+	wsID, ok := middleware.WorkspaceFromContext(stream.Context())
+	if !ok {
+		return status.Error(codes.InvalidArgument, "missing workspace")
+	}
+
+	token, ok := middleware.SessionTokenFromContext(stream.Context())
+	if !ok {
+		return status.Error(codes.InvalidArgument, "missing session token")
+	}
+
+	ctx, cancel := context.WithCancel(stream.Context())
+
+	pipe, err := e.service.OpenStream(ctx, wsID, token)
+	if err != nil {
+		cancel()
+		return err
+	}
+
+	defer close(pipe.In)
+	defer wg.Wait()
+
+	wg.Go(func() {
+		defer cancel()
+		sendStreamFrames(ctx, pipe, stream)
+	})
+
+	defer cancel()
+	if err := receiveStreamFrames(ctx, pipe, stream); err != nil {
+		return err
+	}
+	return nil
 }
 
 func sendCallFrames(ctx context.Context, pipe rpc.CallPipe, stream grpc.BidiStreamingServer[envv1.OpenCallRequest, envv1.OpenCallResponse]) {
@@ -141,6 +173,107 @@ func receiveCallFrames(ctx context.Context, pipe rpc.CallPipe, stream grpc.BidiS
 			return nil
 		}
 	}
+}
+
+func sendStreamFrames(ctx context.Context, pipe rpc.StreamPipe, stream grpc.BidiStreamingServer[envv1.OpenStreamRequest, envv1.OpenStreamResponse]) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case frame, ok := <-pipe.Out:
+			if !ok {
+				return
+			}
+
+			f, err := mapRpcStreamFrame(frame)
+			if err != nil {
+				slog.ErrorContext(ctx, "failed to map outgoing stream frame", "err", err)
+				return
+			}
+			if err := stream.Send(&envv1.OpenStreamResponse{Frame: f}); err != nil {
+				slog.ErrorContext(ctx, "failed to send response", "err", err)
+				return
+			}
+		}
+	}
+}
+
+func receiveStreamFrames(ctx context.Context, pipe rpc.StreamPipe, stream grpc.BidiStreamingServer[envv1.OpenStreamRequest, envv1.OpenStreamResponse]) error {
+	for {
+		req, err := stream.Recv()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return nil
+			}
+			return err
+		}
+
+		frame := req.GetFrame()
+
+		f, err := mapProtoStreamFrame(frame)
+		if err != nil {
+			return status.Errorf(codes.InvalidArgument, "invalid frame: %v", err)
+		}
+
+		select {
+		case pipe.In <- f:
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
+
+func mapProtoStreamFrame(frame *envv1.StreamFrame) (rpc.StreamFrame, error) {
+	if frame == nil {
+		return rpc.StreamFrame{}, fmt.Errorf("missing frame")
+	}
+
+	id := rpc.ID(frame.Id)
+
+	switch k := frame.GetKind().(type) {
+	case *envv1.StreamFrame_Start:
+		return rpc.NewStreamFrameStart(id), nil
+	case *envv1.StreamFrame_Chunk:
+		return rpc.NewStreamFrameChunk(id), nil
+	case *envv1.StreamFrame_End:
+		return rpc.NewStreamFrameEnd(id), nil
+	case *envv1.StreamFrame_Fail:
+		fail := k.Fail
+		rpcErr, err := mapProtoRpcError(fail.GetError())
+		if err != nil {
+			return rpc.StreamFrame{}, err
+		}
+		return rpc.NewStreamFrameFail(id, rpcErr), nil
+	default:
+		return rpc.StreamFrame{}, fmt.Errorf("unknown frame kind")
+	}
+}
+
+func mapRpcStreamFrame(frame rpc.StreamFrame) (*envv1.StreamFrame, error) {
+	f := &envv1.StreamFrame{
+		Id: uint64(frame.ID),
+	}
+	switch frame.Kind {
+	case rpc.StreamFrameStart:
+		f.Kind = &envv1.StreamFrame_Start{Start: &envv1.StreamStart{}}
+	case rpc.StreamFrameChunk:
+		f.Kind = &envv1.StreamFrame_Chunk{Chunk: &envv1.StreamChunk{}}
+	case rpc.StreamFrameEnd:
+		f.Kind = &envv1.StreamFrame_End{End: &envv1.StreamEnd{}}
+	case rpc.StreamFrameFail:
+		rpcErr, err := mapRpcError(frame.Error())
+		if err != nil {
+			return nil, err
+		}
+
+		f.Kind = &envv1.StreamFrame_Fail{Fail: &envv1.StreamFail{
+			Error: rpcErr,
+		}}
+	default:
+		return nil, fmt.Errorf("unknown frame kind")
+	}
+
+	return f, nil
 }
 
 func mapProtoCallFrame(frame *envv1.CallFrame) (rpc.CallFrame, error) {
