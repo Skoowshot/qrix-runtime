@@ -33,13 +33,20 @@ type PendingSession struct {
 	ttlTimer *time.Timer
 	metadata Metadata
 
-	callIn  <-chan rpc.CallFrame
-	callOut chan rpc.CallFrame
+	callIn    <-chan rpc.CallFrame
+	callOut   chan rpc.CallFrame
+	streamIn  <-chan rpc.StreamFrame
+	streamOut chan rpc.StreamFrame
 }
 
 func (s *PendingSession) AttachCall(in <-chan rpc.CallFrame, out chan rpc.CallFrame) {
 	s.callIn = in
 	s.callOut = out
+}
+
+func (s *PendingSession) AttachStream(in <-chan rpc.StreamFrame, out chan rpc.StreamFrame) {
+	s.streamIn = in
+	s.streamOut = out
 }
 
 func (s *PendingSession) Close() error {
@@ -163,6 +170,24 @@ func (r *SessionRegistry) AttachCall(token SessionToken, in <-chan rpc.CallFrame
 	}
 
 	sess.AttachCall(in, out)
+	return nil
+}
+
+// AttachStream retrieves pending session by the given token, and attaches the stream io channels.
+func (r *SessionRegistry) AttachStream(token SessionToken, in <-chan rpc.StreamFrame, out chan rpc.StreamFrame) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	id, ok := r.tokenToID[token]
+	if !ok {
+		return ErrSessionInvalid
+	}
+	sess, ok := r.pending[id]
+	if !ok {
+		return ErrSessionNotPending
+	}
+
+	sess.AttachStream(in, out)
 	return nil
 }
 
