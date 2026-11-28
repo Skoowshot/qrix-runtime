@@ -58,3 +58,25 @@ func (e *Environment) OpenCall(ctx context.Context, wsID workspace.ID, token env
 	}
 	return pipe, nil
 }
+
+func (e *Environment) OpenStream(ctx context.Context, wsID workspace.ID, token env.SessionToken) (rpc.StreamPipe, error) {
+	if err := ctx.Err(); err != nil {
+		return rpc.StreamPipe{}, err
+	}
+
+	ws, ok := e.wsRepo.Get(wsID)
+	if !ok {
+		return rpc.StreamPipe{}, fmt.Errorf("%w: %d", workspace.ErrNotFound, wsID)
+	}
+
+	in := make(chan rpc.StreamFrame)
+	out := make(chan rpc.StreamFrame)
+	if err := ws.Sessions.AttachStream(token, in, out); err != nil {
+		return rpc.StreamPipe{}, err
+	}
+	pipe := rpc.StreamPipe{
+		In:  in,
+		Out: out,
+	}
+	return pipe, nil
+}
